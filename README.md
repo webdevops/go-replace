@@ -19,3 +19,12 @@ Application Options:
   -V, --version      show version and exit
   -h, --help         show this help message
 ```
+
+### Examples
+
+| Command                                                               | Description                                                                                   |
+|-----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| `goreplace -s foobar -r barfoo file1 file2`                           | Replaces `foobar` to `barfoo` in file1 and file2                                              |
+| `goreplace --regex -s 'foo.*' -r barfoo file1 file2`                  | Replaces the regex `foo.*` to `barfoo` in file1 and file2                                     |
+| `goreplace --regex --ignore-case -s 'foo.*' -r barfoo file1 file2`    | Replaces the regex `foo.*` (and ignore case) to `barfoo` in file1 and file2                   |
+| `goreplace --whole-line -s 'foobar' -r barfoo file1 file2`            | Replaces all lines with content `foobar` to `barfoo` (whole line) in file1 and file2          |
