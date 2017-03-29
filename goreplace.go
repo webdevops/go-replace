@@ -98,14 +98,8 @@ func Readln(r *bufio.Reader) (string, error) {
 
 // Checks if there is a match in content, based on search options
 func searchMatch(content string) (bool) {
-    if opts.Regex {
-        if opts.SearchRegex.MatchString(content) {
-            return true
-        }
-    } else {
-        if strings.Contains(content, opts.Search) {
-            return true
-        }
+    if opts.SearchRegex.MatchString(content) {
+        return true
     }
 
     return false
@@ -117,12 +111,7 @@ func replaceText(content string) (string, bool) {
 
     if searchMatch(content) {
         status = true
-
-        if opts.Regex {
-            content = opts.SearchRegex.ReplaceAllString(content, opts.Replace)
-        } else {
-            content = strings.Replace(content, opts.Search, opts.Replace, -1)
-        }
+        content = opts.SearchRegex.ReplaceAllString(content, opts.Replace)
     }
 
     return content, status
@@ -144,6 +133,8 @@ func writeContentToFile(filepath string, content string) {
         if err != nil {
             panic(err)
         }
+
+        logMessage(fmt.Sprintf("%s found and replaced match", filepath))
     }
 }
 
@@ -159,18 +150,27 @@ func logError(err error) {
     fmt.Printf("Error: %s\n", err)
 }
 
-// Process search option
+// Process search term
 // Compiles regexp if regexp is used
-func processSearch() {
+func processSearchTerm() {
+    var regex string
+
     if opts.Regex {
-        regex := opts.Search
-
-        if opts.IgnoreCase {
-            regex = "(?i:" + regex + ")"
-        }
-
-        opts.SearchRegex = regexp.MustCompile(regex)
+        regex = opts.Search
+    } else {
+        regex = regexp.QuoteMeta(opts.Search)
     }
+
+
+    if opts.IgnoreCase {
+        regex = "(?i:" + regex + ")"
+    }
+
+    if opts.Verbose {
+        logMessage(fmt.Sprintf("Using regular expression: %s", regex))
+    }
+
+    opts.SearchRegex = regexp.MustCompile(regex)
 }
 
 func handleSpecialOptions(argparser *flags.Parser, args []string) {
@@ -208,7 +208,7 @@ func main() {
 
 	handleSpecialOptions(argparser, args)
 
-	processSearch()
+	processSearchTerm()
 
     for i := range args {
         var file string
