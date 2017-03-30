@@ -22,35 +22,17 @@ var opts struct {
 	SearchRegex       *regexp.Regexp
 	Replace           string   `short:"r"  long:"replace"      required:"true"  description:"replacement term" `
 	IgnoreCase        bool     `short:"i"  long:"ignore-case"                   description:"ignore pattern case"`
-	WholeLine         bool     `           long:"whole-line"                    description:"replace whole line"`
+	ReplaceLine       bool     `           long:"replace-line"                  description:"replace whole line instead of only match"`
 	Regex             bool     `           long:"regex"                         description:"treat pattern as regex"`
+	RegexBackref      bool     `           long:"regex-backrefs"                description:"enable backreferences in replace term"`
 	Verbose           bool     `short:"v"  long:"verbose"                       description:"verbose mode"`
 	DryRun            bool     `           long:"dry-run"                       description:"dry run mode"`
 	ShowVersion       bool     `short:"V"  long:"version"                       description:"show version and exit"`
 	ShowHelp          bool     `short:"h"  long:"help"                          description:"show this help message"`
 }
 
-// Replace content parts in file
-func replaceContentInFile(filepath string) {
-	var err error
-
-    read, err := ioutil.ReadFile(filepath)
-    if err != nil {
-        panic(err)
-    }
-
-    content, replaceStatus := replaceText(string(read))
-
-    if replaceStatus {
-        writeContentToFile(filepath, content)
-    } else {
-        logMessage(fmt.Sprintf("%s no match", filepath))
-    }
-
-}
-
 // Replace line (if match is found) in file
-func replaceLineInFile(filepath string) {
+func replaceInFile(filepath string) {
     file, err := os.Open(filepath)
     if err != nil {
         panic(err)
@@ -63,7 +45,13 @@ func replaceLineInFile(filepath string) {
     line, e := Readln(r)
     for e == nil {
         if searchMatch(line) {
-            buffer.WriteString(opts.Replace + "\n")
+            if opts.ReplaceLine {
+                line = opts.Replace
+            } else {
+                line = replaceText(line)
+            }
+
+            buffer.WriteString(line + "\n")
             replaceStatus = true
         } else {
             buffer.WriteString(line + "\n")
@@ -73,7 +61,7 @@ func replaceLineInFile(filepath string) {
     }
 
     if replaceStatus {
-        writeContentToFile(filepath, buffer.String())
+        writeContentToFile(filepath, buffer)
     } else {
         logMessage(fmt.Sprintf("%s no match", filepath))
     }
@@ -106,30 +94,27 @@ func searchMatch(content string) (bool) {
 }
 
 // Replace text in whole content based on search options
-func replaceText(content string) (string, bool) {
-    status := false
-
-    if searchMatch(content) {
-        status = true
-        content = opts.SearchRegex.ReplaceAllString(content, opts.Replace)
+func replaceText(content string) (string) {
+    if opts.RegexBackref {
+        return opts.SearchRegex.ReplaceAllString(content, opts.Replace)
+    } else {
+        return opts.SearchRegex.ReplaceAllLiteralString(content, opts.Replace)
     }
-
-    return content, status
 }
 
 // Write content to file
-func writeContentToFile(filepath string, content string) {
+func writeContentToFile(filepath string, content bytes.Buffer) {
     if opts.DryRun {
         title := fmt.Sprintf("%s:", filepath)
 
         fmt.Println(title)
         fmt.Println(strings.Repeat("-", len(title)))
-        fmt.Println(content)
+        fmt.Println(content.String())
         fmt.Println()
         fmt.Println()
     } else {
         var err error
-        err = ioutil.WriteFile(filepath, []byte(content), 0)
+        err = ioutil.WriteFile(filepath, content.Bytes(), 0)
         if err != nil {
             panic(err)
         }
@@ -150,9 +135,9 @@ func logError(err error) {
     fmt.Printf("Error: %s\n", err)
 }
 
-// Process search term
+// Build search term
 // Compiles regexp if regexp is used
-func processSearchTerm() {
+func buildSearchTerm() {
     var regex string
 
     if opts.Regex {
@@ -208,17 +193,13 @@ func main() {
 
 	handleSpecialOptions(argparser, args)
 
-	processSearchTerm()
+	buildSearchTerm()
 
     for i := range args {
         var file string
         file = args[i]
 
-        if opts.WholeLine {
-            replaceLineInFile(file)
-        } else {
-            replaceContentInFile(file)
-        }
+        replaceInFile(file)
     }
 
     os.Exit(0)
