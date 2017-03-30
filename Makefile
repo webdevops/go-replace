@@ -7,7 +7,7 @@ ALL = \
 	$(foreach suffix,linux osx win.exe,\
 		build/gr-$(arch)-$(suffix)))
 
-all: $(ALL)
+all: clean $(ALL)
 
 clean:
 	rm -f $(ALL)
