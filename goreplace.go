@@ -14,7 +14,7 @@ import (
 
 const (
 	Author  = "webdevops.io"
-	Version = "1.0"
+	Version = "0.2.1"
 )
 
 var opts struct {
