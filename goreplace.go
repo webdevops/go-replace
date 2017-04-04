@@ -30,6 +30,7 @@ var opts struct {
     Path              string   `           long:"path"                          description:"use files in this path"`
     PathPattern       string   `           long:"path-pattern"                  description:"file pattern (* for wildcard, only basename of file)"`
     PathRegex         string   `           long:"path-regex"                    description:"file pattern (regex, full path)"`
+    IgnoreEmpty       bool     `           long:"ignore-empty"                  description:"ignore empty file list, otherwise this will result in an error"`
     Verbose           bool     `short:"v"  long:"verbose"                       description:"verbose mode"`
     DryRun            bool     `           long:"dry-run"                       description:"dry run mode"`
     ShowVersion       bool     `short:"V"  long:"version"                       description:"show version and exit"`
@@ -272,11 +273,18 @@ func main() {
 
      // check if there is at least one file to process
     if (len(args) == 0) {
-        err := errors.New("No files specified")
-        logError(err)
-        fmt.Println()
-        argparser.WriteHelp(os.Stdout)
-        os.Exit(1)
+        if (opts.IgnoreEmpty) {
+            // no files found, but we should ignore empty filelist
+            logMessage("No files found, requsted to ignore this")
+            os.Exit(0)
+        } else {
+            // no files found, print error and exit with error code
+            err := errors.New("No files specified")
+            logError(err)
+            fmt.Println()
+            argparser.WriteHelp(os.Stdout)
+            os.Exit(1)
+        }
     }
 
     // build regex search term

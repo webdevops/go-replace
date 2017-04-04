@@ -24,6 +24,7 @@ Application Options:
       --path=           use files in this path
       --path-pattern=   file pattern (* for wildcard, only basename of file)
       --path-regex=     file pattern (regex, full path)
+      --ignore-empty    ignore empty file list, otherwise this will result in an error
   -v, --verbose         verbose mode
       --dry-run         dry run mode
   -V, --version         show version and exit
