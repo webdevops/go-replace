@@ -45,7 +45,7 @@ Application Options:
 ## Installation
 
 ```bash
-GOREPLACE_VERSION=0.3.0 \
+GOREPLACE_VERSION=0.3.1 \
 && wget -O /usr/local/bin/go-replace https://github.com/webdevops/goreplace/releases/download/$GOREPLACE_VERSION/gr-64-linux \
 && chmod +x /usr/local/bin/go-replace
 ```
