@@ -1,4 +1,5 @@
 # goreplace
+
 [![GitHub release](https://img.shields.io/github/release/webdevops/goreplace.svg)](https://github.com/webdevops/goreplace/releases)
 [![license](https://img.shields.io/github/license/webdevops/goreplace.svg)](https://github.com/webdevops/goreplace/blob/master/LICENSE)
 
@@ -7,6 +8,7 @@ Cli utility for replacing text in files, written in golang and compiled for usag
 Inspired by https://github.com/piranha/goreplace
 
 ## Usage
+
 ```
 Usage:
   goreplace
@@ -18,6 +20,10 @@ Application Options:
       --replace-line    replace whole line instead of only match
       --regex           treat pattern as regex
       --regex-backrefs  enable backreferences in replace term
+      --regex-posix     parse regex term as POSIX regex
+      --path=           use files in this path
+      --path-pattern=   file pattern (* for wildcard, only basename of file)
+      --path-regex=     file pattern (regex, full path)
   -v, --verbose         verbose mode
       --dry-run         dry run mode
   -V, --version         show version and exit
@@ -41,3 +47,4 @@ GOREPLACE_VERSION=0.2.1 \
 && wget -O /usr/local/bin/go-replace https://github.com/webdevops/goreplace/releases/download/$GOREPLACE_VERSION/gr-64-linux \
 && chmod +x /usr/local/bin/go-replace
 ```
+

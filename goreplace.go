@@ -5,6 +5,7 @@ import (
     "errors"
     "bytes"
     "io/ioutil"
+    "path/filepath"
     "bufio"
     "os"
     "strings"
@@ -26,11 +27,16 @@ var opts struct {
     Regex             bool     `           long:"regex"                         description:"treat pattern as regex"`
     RegexBackref      bool     `           long:"regex-backrefs"                description:"enable backreferences in replace term"`
     RegexPosix        bool     `           long:"regex-posix"                   description:"parse regex term as POSIX regex"`
+    Path              string   `           long:"path"                          description:"use files in this path"`
+    PathPattern       string   `           long:"path-pattern"                  description:"file pattern (* for wildcard, only basename of file)"`
+    PathRegex         string   `           long:"path-regex"                    description:"file pattern (regex, full path)"`
     Verbose           bool     `short:"v"  long:"verbose"                       description:"verbose mode"`
     DryRun            bool     `           long:"dry-run"                       description:"dry run mode"`
     ShowVersion       bool     `short:"V"  long:"version"                       description:"show version and exit"`
     ShowHelp          bool     `short:"h"  long:"help"                          description:"show this help message"`
 }
+
+var pathFilterDirectories = []string{"autom4te.cache", "blib", "_build", ".bzr", ".cdv", "cover_db", "CVS", "_darcs", "~.dep", "~.dot", ".git", ".hg", "~.nib", ".pc", "~.plst", "RCS", "SCCS", "_sgbak", ".svn", "_obj", ".idea"}
 
 // Replace line (if match is found) in file
 func replaceInFile(filepath string) {
@@ -173,7 +179,62 @@ func buildSearchTerm() {
     }
 }
 
-func handleSpecialCliOptions(argparser *flags.Parser, args []string) {
+// check if string is contained in an array
+func contains(slice []string, item string) bool {
+    set := make(map[string]struct{}, len(slice))
+    for _, s := range slice {
+        set[s] = struct{}{}
+    }
+
+    _, ok := set[item]
+    return ok
+}
+
+// search files in path
+func searchFilesInPath(path string, callback func(os.FileInfo, string)) {
+        var pathRegex *regexp.Regexp
+
+        // --path-regex
+        if (opts.PathRegex != "") {
+            pathRegex = regexp.MustCompile(opts.PathRegex)
+        }
+
+        // collect all files
+        filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
+            filename := f.Name()
+
+            // skip directories
+            if f.IsDir() {
+                if contains(pathFilterDirectories, f.Name()) {
+                    return filepath.SkipDir
+                }
+
+                return nil
+            }
+
+            if (opts.PathPattern != "") {
+                matched, _ := filepath.Match(opts.PathPattern, filename)
+                if (!matched) {
+                    return nil
+                }
+            }
+
+            if pathRegex != nil {
+                if (!pathRegex.MatchString(path)) {
+                    return nil
+                }
+            }
+
+            callback(f, path)
+            return nil
+        })
+}
+
+// handle special cli options
+// eg. --help
+//     --version
+//     --path
+func handleSpecialCliOptions(argparser *flags.Parser, args []string) ([]string) {
     // --version
     if (opts.ShowVersion) {
         fmt.Printf("goreplace version %s\n", Version)
@@ -186,22 +247,22 @@ func handleSpecialCliOptions(argparser *flags.Parser, args []string) {
         os.Exit(1)
     }
 
-    // missing any files
-    if (len(args) == 0) {
-        err := errors.New("No files specified")
-        logError(err)
-        fmt.Println()
-        argparser.WriteHelp(os.Stdout)
-        os.Exit(1)
+    // --path
+    if (opts.Path != "") {
+        searchFilesInPath(opts.Path, func(f os.FileInfo, path string) {
+            args = append(args, path)
+        })
     }
+    return args
 }
 
 func main() {
     var argparser = flags.NewParser(&opts, flags.PassDoubleDash)
     args, err := argparser.Parse()
 
-    handleSpecialCliOptions(argparser, args)
+    args = handleSpecialCliOptions(argparser, args)
 
+    // check if there is an parse error
     if err != nil {
         logError(err)
         fmt.Println()
@@ -209,8 +270,19 @@ func main() {
         os.Exit(1)
     }
 
+     // check if there is at least one file to process
+    if (len(args) == 0) {
+        err := errors.New("No files specified")
+        logError(err)
+        fmt.Println()
+        argparser.WriteHelp(os.Stdout)
+        os.Exit(1)
+    }
+
+    // build regex search term
     buildSearchTerm()
 
+    // process file list
     for i := range args {
         var file string
         file = args[i]
