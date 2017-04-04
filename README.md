@@ -31,3 +31,10 @@ Application Options:
 | `goreplace --replace-line -s 'foobar' -r barfoo file1 file2`       | Replaces all lines with content `foobar` to `barfoo` (whole line) in file1 and file2 |
 
 
+## Installation
+
+```bash
+GOREPLACE_VERSION=0.2.1 \
+&& wget -O /usr/local/bin/go-replace https://github.com/webdevops/goreplace/releases/download/$GOREPLACE_VERSION/gr-64-linux \
+&& chmod +x /usr/local/bin/go-replace
+```
