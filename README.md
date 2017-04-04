@@ -32,12 +32,13 @@ Application Options:
 
 ### Examples
 
-| Command                                                            | Description                                                                          |
-|:-------------------------------------------------------------------|:-------------------------------------------------------------------------------------|
-| `goreplace -s foobar -r barfoo file1 file2`                        | Replaces `foobar` to `barfoo` in file1 and file2                                     |
-| `goreplace --regex -s 'foo.*' -r barfoo file1 file2`               | Replaces the regex `foo.*` to `barfoo` in file1 and file2                            |
-| `goreplace --regex --ignore-case -s 'foo.*' -r barfoo file1 file2` | Replaces the regex `foo.*` (and ignore case) to `barfoo` in file1 and file2          |
-| `goreplace --replace-line -s 'foobar' -r barfoo file1 file2`       | Replaces all lines with content `foobar` to `barfoo` (whole line) in file1 and file2 |
+| Command                                                            | Description                                                                                      |
+|:-------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------|
+| `goreplace -s foobar -r barfoo file1 file2`                        | Replaces `foobar` to `barfoo` in file1 and file2                                                 |
+| `goreplace --regex -s 'foo.*' -r barfoo file1 file2`               | Replaces the regex `foo.*` to `barfoo` in file1 and file2                                        |
+| `goreplace --regex --ignore-case -s 'foo.*' -r barfoo file1 file2` | Replaces the regex `foo.*` (and ignore case) to `barfoo` in file1 and file2                      |
+| `goreplace --replace-line -s 'foobar' -r barfoo file1 file2`       | Replaces all lines with content `foobar` to `barfoo` (whole line) in file1 and file2             |
+| `goreplace -s 'foobar' -r barfoo --path=./ --path-pattern='*.txt'` | Replaces all lines with content `foobar` to `barfoo` (whole line) in *.txt files in current path |
 
 
 ## Installation
