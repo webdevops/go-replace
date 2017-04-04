@@ -1,4 +1,6 @@
 # goreplace
+[![GitHub release](https://img.shields.io/github/release/webdevops/goreplace.svg)](https://github.com/webdevops/goreplace/releases)
+
 Cli utility for replacing text in files, written in golang and compiled for usage in Docker images
 
 Inspired by https://github.com/piranha/goreplace
