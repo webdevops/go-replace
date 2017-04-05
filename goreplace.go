@@ -42,7 +42,7 @@ var opts struct {
     ModeIsLineInFile        bool
     Search                  []string `short:"s"  long:"search"       required:"true"  description:"search term"`
     Replace                 []string `short:"r"  long:"replace"      required:"true"  description:"replacement term" `
-    IgnoreCase              bool     `short:"i"  long:"ignore-case"                   description:"ignore pattern case"`
+    CaseInsensitive         bool     `short:"i"  long:"case-insensitive"              description:"ignore case of pattern to match upper and lowercase characters"`
     Once                    bool     `           long:"once"                          description:"replace search term only one in a file"`
     OnceRemoveMatch         bool     `           long:"once-remove-match"             description:"replace search term only one in a file and also don't keep matching lines (for line and lineinfile mode)"`
     Regex                   bool     `           long:"regex"                         description:"treat pattern as regex"`
@@ -216,7 +216,7 @@ func buildSearchTerm(term string) (*regexp.Regexp) {
     }
 
     // --ignore-case
-    if opts.IgnoreCase {
+    if opts.CaseInsensitive {
         regex = "(?i:" + regex + ")"
     }
 

@@ -18,7 +18,7 @@ Application Options:
                                        replace line with term or if not found append to term to file (default: replace)
   -s, --search=                        search term
   -r, --replace=                       replacement term
-  -i, --ignore-case                    ignore pattern case
+  -i, --case-insensitive               ignore case of pattern to match upper and lowercase characters
       --once                           replace search term only one in a file
       --once-remove-match              replace search term only one in a file and also don't keep matching lines (for line and lineinfile
                                        mode)
