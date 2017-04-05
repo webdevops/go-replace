@@ -41,6 +41,12 @@ Usage:
   $ goreplace -V
   goreplace version [0-9]+.[0-9]+.[0-9]+ (re)
 
+
+Testing ignoring missing arguments:
+  $ goreplace -s foobar -r ___xxx --ignore-empty
+
+
+
 Testing replace mode:
 
   $ cat > test.txt <<EOF
@@ -72,6 +78,69 @@ Testing replace mode with multiple matches:
   this is the third ___xxx line
   this is the ___xxx forth ___xxx line
   this is the last line
+
+Testing replace mode without match:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the foobar forth foobar line
+  > this is the last line
+  > EOF
+  $ goreplace -s barfoo -r ___xxx test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second line
+  this is the third foobar line
+  this is the foobar forth foobar line
+  this is the last line
+
+Testing replace mode with regex:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the last line
+  > EOF
+  $ goreplace --regex -s 'f[o]+b[a]*r' -r ___xxx test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second line
+  this is the third ___xxx line
+  this is the last line
+
+Testing replace mode with regex:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the last line
+  > EOF
+  $ goreplace --regex --regex-backrefs -s 'f[o]+(b[a]*r)' -r '___$1' test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second line
+  this is the third ___bar line
+  this is the last line
+
+Testing replace mode with regex and case-insensitive:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the last line
+  > EOF
+  $ goreplace --regex --regex-backrefs -s 'F[O]+(b[a]*r)' -r '___$1' --case-insensitive test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second line
+  this is the third ___bar line
+  this is the last line
+
 
 Testing line mode:
 
@@ -137,6 +206,9 @@ Testing line mode with multiple matches and --once-remove-match:
   this is the second line
   ___xxx
   this is the last line
+
+
+
 
 Testing lineinfile mode:
 
