@@ -40,3 +40,100 @@ Usage:
   [1]
   $ goreplace -V
   goreplace version [0-9]+.[0-9]+.[0-9]+ (re)
+
+Testing replace mode:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the last line
+  > EOF
+  $ goreplace -s foobar -r ___xxx test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second line
+  this is the third ___xxx line
+  this is the last line
+
+Testing replace mode with multiple matches:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the foobar forth foobar line
+  > this is the last line
+  > EOF
+  $ goreplace -s foobar -r ___xxx test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second line
+  this is the third ___xxx line
+  this is the ___xxx forth ___xxx line
+  this is the last line
+
+Testing line mode:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the last line
+  > EOF
+  $ goreplace --mode=line -s foobar -r ___xxx test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second line
+  ___xxx
+  this is the last line
+
+Testing replace mode with multiple matches:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the foobar forth foobar line
+  > this is the last line
+  > EOF
+  $ goreplace --mode=line -s foobar -r ___xxx test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second line
+  ___xxx
+  ___xxx
+  this is the last line
+
+Testing replace mode with multiple matches and --once:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the foobar forth foobar line
+  > this is the last line
+  > EOF
+  $ goreplace --mode=line -s foobar -r ___xxx --once test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second line
+  ___xxx
+  this is the foobar forth foobar line
+  this is the last line
+
+Testing replace mode with multiple matches and --once-remove-match:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the foobar forth foobar line
+  > this is the last line
+  > EOF
+  $ goreplace --mode=line -s foobar -r ___xxx --once-remove-match test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second line
+  ___xxx
+  this is the last line
