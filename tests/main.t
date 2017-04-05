@@ -292,3 +292,59 @@ Testing lineinfile mode without match:
   this is the foobar forth foobar line
   this is the last line
   ___xxx
+
+
+
+Testing replace mode with path option:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the foobar forth foobar line
+  > this is the last line
+  > EOF
+  $ mkdir -p testing/sub1/subsub testing/sub2/subsub
+  $ cp test.txt testing/sub1/subsub/test1.txt
+  $ cp test.txt testing/sub1/subsub/test2.txt
+  $ cp test.txt testing/sub1/test3.txt
+  $ cp test.txt testing/sub2/subsub/test4.txt
+  $ cp test.txt testing/sub2/subsub/test5.txt
+  $ cp test.txt testing/sub2/original.md
+  $ goreplace -s foobar -r barfoo --path=./testing --path-pattern='*.txt'
+  $ cat testing/sub1/subsub/test1.txt
+  this is a testline
+  this is the second line
+  this is the third barfoo line
+  this is the barfoo forth barfoo line
+  this is the last line
+  $ cat testing/sub1/subsub/test2.txt
+  this is a testline
+  this is the second line
+  this is the third barfoo line
+  this is the barfoo forth barfoo line
+  this is the last line
+  $ cat testing/sub1/test3.txt
+  this is a testline
+  this is the second line
+  this is the third barfoo line
+  this is the barfoo forth barfoo line
+  this is the last line
+  $ cat testing/sub2/subsub/test4.txt
+  this is a testline
+  this is the second line
+  this is the third barfoo line
+  this is the barfoo forth barfoo line
+  this is the last line
+  $ cat testing/sub2/subsub/test5.txt
+  this is a testline
+  this is the second line
+  this is the third barfoo line
+  this is the barfoo forth barfoo line
+  this is the last line
+  $ cat testing/sub2/original.md
+  this is a testline
+  this is the second line
+  this is the third foobar line
+  this is the foobar forth foobar line
+  this is the last line
