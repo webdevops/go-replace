@@ -2,6 +2,7 @@ package main
 
 import (
     "fmt"
+    "sync"
     "errors"
     "bytes"
     "io/ioutil"
@@ -22,6 +23,16 @@ type changeset struct {
     Search      *regexp.Regexp
     Replace     string
     MatchFound  bool
+}
+
+type changeresult struct {
+    File   fileitem
+    Output string
+    Status bool
+}
+
+type fileitem struct {
+    Path        string
 }
 
 var opts struct {
@@ -50,9 +61,12 @@ var opts struct {
 var pathFilterDirectories = []string{"autom4te.cache", "blib", "_build", ".bzr", ".cdv", "cover_db", "CVS", "_darcs", "~.dep", "~.dot", ".git", ".hg", "~.nib", ".pc", "~.plst", "RCS", "SCCS", "_sgbak", ".svn", "_obj", ".idea"}
 
 // Apply changesets to file
-func applyChangesetsToFile(filepath string, changesets []changeset) {
+func applyChangesetsToFile(fileitem fileitem, changesets []changeset) (string, bool) {
+    output := ""
+    status := true
+
     // try open file
-    file, err := os.Open(filepath)
+    file, err := os.Open(fileitem.Path)
     if err != nil {
         panic(err)
     }
@@ -114,10 +128,12 @@ func applyChangesetsToFile(filepath string, changesets []changeset) {
     }
 
     if writeBufferToFile {
-        writeContentToFile(filepath, buffer)
+        output, status = writeContentToFile(fileitem, buffer)
     } else {
-        logMessage(fmt.Sprintf("%s no match", filepath))
+        output = fmt.Sprintf("%s no match", fileitem.Path)
     }
+
+    return output, status
 }
 
 // Readln returns a single line (without the ending \n)
@@ -157,24 +173,18 @@ func replaceText(content string, changeset changeset) (string) {
 }
 
 // Write content to file
-func writeContentToFile(filepath string, content bytes.Buffer) {
+func writeContentToFile(fileitem fileitem, content bytes.Buffer) (string, bool) {
     // --dry-run
     if opts.DryRun {
-        title := fmt.Sprintf("%s:", filepath)
-
-        fmt.Println()
-        fmt.Println(title)
-        fmt.Println(strings.Repeat("-", len(title)))
-        fmt.Println(content.String())
-        fmt.Println()
+        return content.String(), true
     } else {
         var err error
-        err = ioutil.WriteFile(filepath, content.Bytes(), 0)
+        err = ioutil.WriteFile(fileitem.Path, content.Bytes(), 0)
         if err != nil {
             panic(err)
         }
 
-        logMessage(fmt.Sprintf("%s found and replaced match", filepath))
+        return fmt.Sprintf("%s found and replaced match\n", fileitem.Path), true
     }
 }
 
@@ -381,12 +391,40 @@ func main() {
         }
     }
 
+    results := make(chan changeresult)
+
+    var wg sync.WaitGroup
+
     // process file list
     for i := range args {
-        var file string
-        file = args[i]
+        file := fileitem{args[i]}
 
-        applyChangesetsToFile(file, changesets)
+        wg.Add(1)
+        go func(file fileitem, changesets []changeset) {
+            output, status := applyChangesetsToFile(file, changesets)
+            results <- changeresult{file, output, status}
+            wg.Done()
+        } (file, changesets);
+    }
+
+    // wait for all changes to be processed
+    go func() {
+        wg.Wait()
+        close(results)
+    }()
+
+    // show results
+    if opts.Verbose {
+        for result := range results {
+            title := fmt.Sprintf("%s:", result.File.Path)
+
+            fmt.Println()
+            fmt.Println(title)
+            fmt.Println(strings.Repeat("-", len(title)))
+            fmt.Println()
+            fmt.Println(result.Output)
+            fmt.Println()
+        }
     }
 
     os.Exit(0)
