@@ -19,11 +19,14 @@ const (
 )
 
 var opts struct {
+    Mode              string   `short:"m"  long:"mode"                          description:"replacement mode" default:"replace" choice:"replace" choice:"replaceline" choice:"lineinfile"`
+    ModeIsReplace     bool
+    ModeIsReplaceLine bool
+    ModeIsLineInFile  bool
     Search            string   `short:"s"  long:"search"       required:"true"  description:"search term"`
     SearchRegex       *regexp.Regexp
     Replace           string   `short:"r"  long:"replace"      required:"true"  description:"replacement term" `
     IgnoreCase        bool     `short:"i"  long:"ignore-case"                   description:"ignore pattern case"`
-    ReplaceLine       bool     `           long:"replace-line"                  description:"replace whole line instead of only match"`
     Regex             bool     `           long:"regex"                         description:"treat pattern as regex"`
     RegexBackref      bool     `           long:"regex-backrefs"                description:"enable backreferences in replace term"`
     RegexPosix        bool     `           long:"regex-posix"                   description:"parse regex term as POSIX regex"`
@@ -55,7 +58,7 @@ func replaceInFile(filepath string) {
     for e == nil {
         if searchMatch(line) {
             // --replace-line
-            if opts.ReplaceLine {
+            if opts.ModeIsReplaceLine || opts.ModeIsLineInFile {
                 // replace whole line with replace term
                 line = opts.Replace
             } else {
@@ -70,6 +73,11 @@ func replaceInFile(filepath string) {
         }
 
         line, e = Readln(r)
+    }
+
+    if opts.ModeIsLineInFile && !replaceStatus {
+        buffer.WriteString(opts.Replace + "\n")
+        replaceStatus = true
     }
 
     if replaceStatus {
@@ -246,6 +254,22 @@ func handleSpecialCliOptions(argparser *flags.Parser, args []string) ([]string) 
     if (opts.ShowHelp) {
         argparser.WriteHelp(os.Stdout)
         os.Exit(1)
+    }
+
+    // --mode
+    switch mode := opts.Mode; mode {
+        case "replace":
+            opts.ModeIsReplace = true
+            opts.ModeIsReplaceLine = false
+            opts.ModeIsLineInFile = false
+        case "replaceline":
+            opts.ModeIsReplace = false
+            opts.ModeIsReplaceLine = true
+            opts.ModeIsLineInFile = false
+        case "lineinfile":
+            opts.ModeIsReplace = false
+            opts.ModeIsReplaceLine = false
+            opts.ModeIsLineInFile = true
     }
 
     // --path
