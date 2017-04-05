@@ -14,21 +14,25 @@ Usage:
   goreplace
 
 Application Options:
-  -m, --mode=[replace|replaceline|lineinfile] replacement mode (default: replace)
-  -s, --search=                               search term
-  -r, --replace=                              replacement term
-  -i, --ignore-case                           ignore pattern case
-      --regex                                 treat pattern as regex
-      --regex-backrefs                        enable backreferences in replace term
-      --regex-posix                           parse regex term as POSIX regex
-      --path=                                 use files in this path
-      --path-pattern=                         file pattern (* for wildcard, only basename of file)
-      --path-regex=                           file pattern (regex, full path)
-      --ignore-empty                          ignore empty file list, otherwise this will result in an error
-  -v, --verbose                               verbose mode
-      --dry-run                               dry run mode
-  -V, --version                               show version and exit
-  -h, --help                                  show this help message
+  -m, --mode=[replace|line|lineinfile] replacement mode - replace: replace match with term; line: replace line with term; lineinfile:
+                                       replace line with term or if not found append to term to file (default: replace)
+  -s, --search=                        search term
+  -r, --replace=                       replacement term
+  -i, --ignore-case                    ignore pattern case
+      --once                           replace search term only one in a file
+      --once-remove-match              replace search term only one in a file and also don't keep matching lines (for line and lineinfile
+                                       mode)
+      --regex                          treat pattern as regex
+      --regex-backrefs                 enable backreferences in replace term
+      --regex-posix                    parse regex term as POSIX regex
+      --path=                          use files in this path
+      --path-pattern=                  file pattern (* for wildcard, only basename of file)
+      --path-regex=                    file pattern (regex, full path)
+      --ignore-empty                   ignore empty file list, otherwise this will result in an error
+  -v, --verbose                        verbose mode
+      --dry-run                        dry run mode
+  -V, --version                        show version and exit
+  -h, --help                           show this help message
 ```
 
 ### Examples
@@ -38,7 +42,7 @@ Application Options:
 | `goreplace -s foobar -r barfoo file1 file2`                        | Replaces `foobar` to `barfoo` in file1 and file2                                                 |
 | `goreplace --regex -s 'foo.*' -r barfoo file1 file2`               | Replaces the regex `foo.*` to `barfoo` in file1 and file2                                        |
 | `goreplace --regex --ignore-case -s 'foo.*' -r barfoo file1 file2` | Replaces the regex `foo.*` (and ignore case) to `barfoo` in file1 and file2                      |
-| `goreplace --replace-line -s 'foobar' -r barfoo file1 file2`       | Replaces all lines with content `foobar` to `barfoo` (whole line) in file1 and file2             |
+| `goreplace --mode=line -s 'foobar' -r barfoo file1 file2`          | Replaces all lines with content `foobar` to `barfoo` (whole line) in file1 and file2             |
 | `goreplace -s 'foobar' -r barfoo --path=./ --path-pattern='*.txt'` | Replaces all lines with content `foobar` to `barfoo` (whole line) in *.txt files in current path |
 
 
