@@ -15,72 +15,105 @@ import (
 
 const (
     Author  = "webdevops.io"
-    Version = "0.3.1"
+    Version = "0.4.0"
 )
 
+type changeset struct {
+    Search      *regexp.Regexp
+    Replace     string
+    MatchFound  bool
+}
+
 var opts struct {
-    Mode              string   `short:"m"  long:"mode"                          description:"replacement mode" default:"replace" choice:"replace" choice:"replaceline" choice:"lineinfile"`
-    ModeIsReplace     bool
-    ModeIsReplaceLine bool
-    ModeIsLineInFile  bool
-    Search            string   `short:"s"  long:"search"       required:"true"  description:"search term"`
-    SearchRegex       *regexp.Regexp
-    Replace           string   `short:"r"  long:"replace"      required:"true"  description:"replacement term" `
-    IgnoreCase        bool     `short:"i"  long:"ignore-case"                   description:"ignore pattern case"`
-    Regex             bool     `           long:"regex"                         description:"treat pattern as regex"`
-    RegexBackref      bool     `           long:"regex-backrefs"                description:"enable backreferences in replace term"`
-    RegexPosix        bool     `           long:"regex-posix"                   description:"parse regex term as POSIX regex"`
-    Path              string   `           long:"path"                          description:"use files in this path"`
-    PathPattern       string   `           long:"path-pattern"                  description:"file pattern (* for wildcard, only basename of file)"`
-    PathRegex         string   `           long:"path-regex"                    description:"file pattern (regex, full path)"`
-    IgnoreEmpty       bool     `           long:"ignore-empty"                  description:"ignore empty file list, otherwise this will result in an error"`
-    Verbose           bool     `short:"v"  long:"verbose"                       description:"verbose mode"`
-    DryRun            bool     `           long:"dry-run"                       description:"dry run mode"`
-    ShowVersion       bool     `short:"V"  long:"version"                       description:"show version and exit"`
-    ShowHelp          bool     `short:"h"  long:"help"                          description:"show this help message"`
+    Mode                    string   `short:"m"  long:"mode"                          description:"replacement mode - replace: replace match with term; line: replace line with term; lineinfile: replace line with term or if not found append to term to file" default:"replace" choice:"replace" choice:"line" choice:"lineinfile"`
+    ModeIsReplaceMatch      bool
+    ModeIsReplaceLine       bool
+    ModeIsLineInFile        bool
+    Search                  []string `short:"s"  long:"search"       required:"true"  description:"search term"`
+    Replace                 []string `short:"r"  long:"replace"      required:"true"  description:"replacement term" `
+    IgnoreCase              bool     `short:"i"  long:"ignore-case"                   description:"ignore pattern case"`
+    Once                    bool     `           long:"once"                          description:"replace search term only one in a file"`
+    OnceRemoveMatch         bool     `           long:"once-remove-match"             description:"replace search term only one in a file and also don't keep matching lines (for line and lineinfile mode)"`
+    Regex                   bool     `           long:"regex"                         description:"treat pattern as regex"`
+    RegexBackref            bool     `           long:"regex-backrefs"                description:"enable backreferences in replace term"`
+    RegexPosix              bool     `           long:"regex-posix"                   description:"parse regex term as POSIX regex"`
+    Path                    string   `           long:"path"                          description:"use files in this path"`
+    PathPattern             string   `           long:"path-pattern"                  description:"file pattern (* for wildcard, only basename of file)"`
+    PathRegex               string   `           long:"path-regex"                    description:"file pattern (regex, full path)"`
+    IgnoreEmpty             bool     `           long:"ignore-empty"                  description:"ignore empty file list, otherwise this will result in an error"`
+    Verbose                 bool     `short:"v"  long:"verbose"                       description:"verbose mode"`
+    DryRun                  bool     `           long:"dry-run"                       description:"dry run mode"`
+    ShowVersion             bool     `short:"V"  long:"version"                       description:"show version and exit"`
+    ShowHelp                bool     `short:"h"  long:"help"                          description:"show this help message"`
 }
 
 var pathFilterDirectories = []string{"autom4te.cache", "blib", "_build", ".bzr", ".cdv", "cover_db", "CVS", "_darcs", "~.dep", "~.dot", ".git", ".hg", "~.nib", ".pc", "~.plst", "RCS", "SCCS", "_sgbak", ".svn", "_obj", ".idea"}
 
-// Replace line (if match is found) in file
-func replaceInFile(filepath string) {
+// Apply changesets to file
+func applyChangesetsToFile(filepath string, changesets []changeset) {
     // try open file
     file, err := os.Open(filepath)
     if err != nil {
         panic(err)
     }
 
-    replaceStatus := false
+    writeBufferToFile := false
     var buffer bytes.Buffer
 
     r := bufio.NewReader(file)
     line, e := Readln(r)
     for e == nil {
-        if searchMatch(line) {
-            // --replace-line
-            if opts.ModeIsReplaceLine || opts.ModeIsLineInFile {
-                // replace whole line with replace term
-                line = opts.Replace
-            } else {
-                // replace only term inside line
-                line = replaceText(line)
-            }
+        writeLine := true
 
-            buffer.WriteString(line + "\n")
-            replaceStatus = true
-        } else {
+        for i := range changesets {
+            changeset := changesets[i]
+
+            // --once, only do changeset once if already applied to file
+            if opts.Once && changeset.MatchFound {
+                // --once-without-match, skip matching lines
+                if opts.OnceRemoveMatch && searchMatch(line, changeset) {
+                    // matching line, not writing to buffer as requsted
+                    writeLine = false
+                    writeBufferToFile = true
+                    break
+                }
+            } else {
+                // search and replace
+                if searchMatch(line, changeset) {
+                    // --mode=line or --mode=lineinfile
+                    if opts.ModeIsReplaceLine || opts.ModeIsLineInFile {
+                        // replace whole line with replace term
+                        line = changeset.Replace
+                    } else {
+                        // replace only term inside line
+                        line = replaceText(line, changeset)
+                    }
+
+                    changesets[i].MatchFound = true
+                    writeBufferToFile = true
+                }
+            }
+        }
+
+        if (writeLine) {
             buffer.WriteString(line + "\n")
         }
 
         line, e = Readln(r)
     }
 
-    if opts.ModeIsLineInFile && !replaceStatus {
-        buffer.WriteString(opts.Replace + "\n")
-        replaceStatus = true
+    // --mode=lineinfile
+    if opts.ModeIsLineInFile {
+        for i := range changesets {
+            changeset := changesets[i]
+            if !changeset.MatchFound {
+                buffer.WriteString(changeset.Replace + "\n")
+                writeBufferToFile = true
+            }
+        }
     }
 
-    if replaceStatus {
+    if writeBufferToFile {
         writeContentToFile(filepath, buffer)
     } else {
         logMessage(fmt.Sprintf("%s no match", filepath))
@@ -105,8 +138,8 @@ func Readln(r *bufio.Reader) (string, error) {
 
 
 // Checks if there is a match in content, based on search options
-func searchMatch(content string) (bool) {
-    if opts.SearchRegex.MatchString(content) {
+func searchMatch(content string, changeset changeset) (bool) {
+    if changeset.Search.MatchString(content) {
         return true
     }
 
@@ -114,12 +147,12 @@ func searchMatch(content string) (bool) {
 }
 
 // Replace text in whole content based on search options
-func replaceText(content string) (string) {
+func replaceText(content string, changeset changeset) (string) {
     // --regex-backrefs
     if opts.RegexBackref {
-        return opts.SearchRegex.ReplaceAllString(content, opts.Replace)
+        return changeset.Search.ReplaceAllString(content, changeset.Replace)
     } else {
-        return opts.SearchRegex.ReplaceAllLiteralString(content, opts.Replace)
+        return changeset.Search.ReplaceAllLiteralString(content, changeset.Replace)
     }
 }
 
@@ -145,7 +178,6 @@ func writeContentToFile(filepath string, content bytes.Buffer) {
     }
 }
 
-
 // Log message
 func logMessage(message string) {
     if opts.Verbose {
@@ -160,16 +192,17 @@ func logError(err error) {
 
 // Build search term
 // Compiles regexp if regexp is used
-func buildSearchTerm() {
+func buildSearchTerm(term string) (*regexp.Regexp) {
+    var ret *regexp.Regexp
     var regex string
 
     // --regex
     if opts.Regex {
         // use search term as regex
-        regex = opts.Search
+        regex = term
     } else {
         // use search term as normal string, escape it for regex usage
-        regex = regexp.QuoteMeta(opts.Search)
+        regex = regexp.QuoteMeta(term)
     }
 
     // --ignore-case
@@ -177,15 +210,19 @@ func buildSearchTerm() {
         regex = "(?i:" + regex + ")"
     }
 
+    // --verbose
     if opts.Verbose {
         logMessage(fmt.Sprintf("Using regular expression: %s", regex))
     }
 
+    // --regex-posix
     if opts.RegexPosix {
-        opts.SearchRegex = regexp.MustCompilePOSIX(regex)
+        ret = regexp.MustCompilePOSIX(regex)
     } else {
-        opts.SearchRegex = regexp.MustCompile(regex)
+        ret = regexp.MustCompile(regex)
     }
+
+    return ret
 }
 
 // check if string is contained in an array
@@ -221,6 +258,7 @@ func searchFilesInPath(path string, callback func(os.FileInfo, string)) {
                 return nil
             }
 
+            // --path-pattern
             if (opts.PathPattern != "") {
                 matched, _ := filepath.Match(opts.PathPattern, filename)
                 if (!matched) {
@@ -228,6 +266,7 @@ func searchFilesInPath(path string, callback func(os.FileInfo, string)) {
                 }
             }
 
+            // --path-regex
             if pathRegex != nil {
                 if (!pathRegex.MatchString(path)) {
                     return nil
@@ -243,6 +282,8 @@ func searchFilesInPath(path string, callback func(os.FileInfo, string)) {
 // eg. --help
 //     --version
 //     --path
+//     --mode=...
+//     --once-without-match
 func handleSpecialCliOptions(argparser *flags.Parser, args []string) ([]string) {
     // --version
     if (opts.ShowVersion) {
@@ -259,15 +300,15 @@ func handleSpecialCliOptions(argparser *flags.Parser, args []string) ([]string) 
     // --mode
     switch mode := opts.Mode; mode {
         case "replace":
-            opts.ModeIsReplace = true
+            opts.ModeIsReplaceMatch = true
             opts.ModeIsReplaceLine = false
             opts.ModeIsLineInFile = false
-        case "replaceline":
-            opts.ModeIsReplace = false
+        case "line":
+            opts.ModeIsReplaceMatch = false
             opts.ModeIsReplaceLine = true
             opts.ModeIsLineInFile = false
         case "lineinfile":
-            opts.ModeIsReplace = false
+            opts.ModeIsReplaceMatch = false
             opts.ModeIsReplaceLine = false
             opts.ModeIsLineInFile = true
     }
@@ -278,10 +319,19 @@ func handleSpecialCliOptions(argparser *flags.Parser, args []string) ([]string) 
             args = append(args, path)
         })
     }
+
+    // --once-without-match
+    if opts.OnceRemoveMatch {
+        // implicit enables once mode
+        opts.Once = true
+    }
+
     return args
 }
 
 func main() {
+    var changesets = []changeset {}
+
     var argparser = flags.NewParser(&opts, flags.PassDoubleDash)
     args, err := argparser.Parse()
 
@@ -293,6 +343,26 @@ func main() {
         fmt.Println()
         argparser.WriteHelp(os.Stdout)
         os.Exit(1)
+    }
+
+    // check if search and replace options have equal lenght (equal number of options)
+    if len(opts.Search) != len(opts.Replace) {
+        // error: unequal numbers of search and replace options
+        err := errors.New("Unequal numbers of search or replace options")
+        logError(err)
+        fmt.Println()
+        argparser.WriteHelp(os.Stdout)
+        os.Exit(1)
+    }
+
+    // build changesets
+    for i := range opts.Search {
+        search := opts.Search[i]
+        replace := opts.Replace[i]
+
+        changeset := changeset{buildSearchTerm(search), replace, false}
+
+        changesets = append(changesets, changeset)
     }
 
      // check if there is at least one file to process
@@ -311,15 +381,12 @@ func main() {
         }
     }
 
-    // build regex search term
-    buildSearchTerm()
-
     // process file list
     for i := range args {
         var file string
         file = args[i]
 
-        replaceInFile(file)
+        applyChangesetsToFile(file, changesets)
     }
 
     os.Exit(0)
