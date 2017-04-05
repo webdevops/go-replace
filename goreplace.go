@@ -29,6 +29,7 @@ type changeresult struct {
     File   fileitem
     Output string
     Status bool
+    Error  error
 }
 
 type fileitem struct {
@@ -61,14 +62,17 @@ var opts struct {
 var pathFilterDirectories = []string{"autom4te.cache", "blib", "_build", ".bzr", ".cdv", "cover_db", "CVS", "_darcs", "~.dep", "~.dot", ".git", ".hg", "~.nib", ".pc", "~.plst", "RCS", "SCCS", "_sgbak", ".svn", "_obj", ".idea"}
 
 // Apply changesets to file
-func applyChangesetsToFile(fileitem fileitem, changesets []changeset) (string, bool) {
-    output := ""
-    status := true
+func applyChangesetsToFile(fileitem fileitem, changesets []changeset) (string, bool, error) {
+    var (
+        err error = nil
+        output string = ""
+        status bool = true
+    )
 
     // try open file
     file, err := os.Open(fileitem.Path)
     if err != nil {
-        panic(err)
+        return output, false, err
     }
 
     writeBufferToFile := false
@@ -133,7 +137,7 @@ func applyChangesetsToFile(fileitem fileitem, changesets []changeset) (string, b
         output = fmt.Sprintf("%s no match", fileitem.Path)
     }
 
-    return output, status
+    return output, status, err
 }
 
 // Readln returns a single line (without the ending \n)
@@ -401,8 +405,8 @@ func main() {
 
         wg.Add(1)
         go func(file fileitem, changesets []changeset) {
-            output, status := applyChangesetsToFile(file, changesets)
-            results <- changeresult{file, output, status}
+            output, status, err := applyChangesetsToFile(file, changesets)
+            results <- changeresult{file, output, status, err}
             wg.Done()
         } (file, changesets);
     }
@@ -414,8 +418,12 @@ func main() {
     }()
 
     // show results
-    if opts.Verbose {
-        for result := range results {
+    errorCount := 0
+    for result := range results {
+        if result.Error != nil {
+            logError(result.Error)
+            errorCount++
+        } else if opts.Verbose {
             title := fmt.Sprintf("%s:", result.File.Path)
 
             fmt.Println()
@@ -427,5 +435,11 @@ func main() {
         }
     }
 
-    os.Exit(0)
+    if errorCount >= 1 {
+        fmt.Println(fmt.Sprintf("[ERROR] %s failed with %d error(s)", argparser.Command.Name, errorCount))
+        os.Exit(1)
+    } else {
+        os.Exit(0)
+    }
+
 }
