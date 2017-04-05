@@ -35,6 +35,13 @@ Application Options:
   -h, --help                           show this help message
 ```
 
+| Mode       | Description                                                                                                                                            |
+|:-----------|:-------------------------------------------------------------------------------------------------------------------------------------------------------|
+| replace    | Replace search term inside one line with replacement.                                                                                                  |
+| line       | Replace line (if matched term is inside) with replacement.                                                                                             |
+| lineinfile | Replace line (if matched term is inside) with replacement. If no match is found in the whole file the line will be appended to the bottom of the file. |
+
+
 ### Examples
 
 | Command                                                            | Description                                                                                      |
