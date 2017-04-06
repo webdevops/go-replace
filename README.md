@@ -57,6 +57,24 @@ Application Options:
 | `goreplace --mode=line -s 'foobar' -r barfoo file1 file2`          | Replaces all lines with content `foobar` to `barfoo` (whole line) in file1 and file2             |
 | `goreplace -s 'foobar' -r barfoo --path=./ --path-pattern='*.txt'` | Replaces all lines with content `foobar` to `barfoo` (whole line) in *.txt files in current path |
 
+### Example with golang templates
+
+Configuration file `daemon.conf`:
+```
+<VirtualHost ...>
+    ServerName {{.Env.SERVERNAME}}
+    DocumentRoot {{.Env.DOCUMENTROOT}}
+<VirtualHost>
+
+```
+
+Process file with:
+
+```bash
+SERVERNAME=www.foobar.example
+DOCUMENTROOT=/var/www/foobar.example/
+go-replace --mode=template daemon.conf
+```
 
 ## Installation
 
