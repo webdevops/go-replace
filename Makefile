@@ -13,7 +13,7 @@ build: clean test $(ALL)
 
 # cram is a python app, so 'easy_install/pip install cram' to run tests
 test:
-	cram tests/*.t
+	cram tests/main.test
 
 clean:
 	rm -f $(ALL)
