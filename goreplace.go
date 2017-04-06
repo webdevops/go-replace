@@ -249,8 +249,6 @@ func logError(err error) {
 // Log error object as message
 func logFatalErrorAndExit(err error, exitCode int) {
     fmt.Fprintln(os.Stderr, fmt.Sprintf("Error: %s\n", err))
-    fmt.Fprintln(os.Stderr, "")
-    argparser.WriteHelp(os.Stdout)
     os.Exit(exitCode)
 }
 

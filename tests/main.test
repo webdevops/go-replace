@@ -18,7 +18,9 @@ Testing ignoring missing arguments:
 
 Testing missing search and replace argument:
 
-  $ goreplace --mode=replace /dev/null &> /dev/null
+  $ goreplace --mode=replace /dev/null
+  Error: Missing either --search or --replace for this mode
+  
   [1]
 
 Testing ignoring missing arguments in template mode:
