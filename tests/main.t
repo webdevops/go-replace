@@ -6,12 +6,24 @@ Go Replace tests:
 
 Usage:
 
+  $ goreplace -h > /dev/null
+  [1]
   $ goreplace -V
   goreplace version [0-9]+.[0-9]+.[0-9]+ (re)
 
 
 Testing ignoring missing arguments:
+
   $ goreplace -s foobar -r ___xxx --ignore-empty
+
+Testing missing search and replace argument:
+
+  $ goreplace --mode=replace /dev/null &> /dev/null
+  [1]
+
+Testing ignoring missing arguments in template mode:
+
+  $ goreplace --mode=template --ignore-empty
 
 
 
