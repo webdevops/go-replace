@@ -11,6 +11,7 @@ import (
     "os"
     "strings"
     "regexp"
+    "text/template"
     flags "github.com/jessevdk/go-flags"
 )
 
@@ -36,11 +37,17 @@ type fileitem struct {
     Path        string
 }
 
+type templateData struct {
+    Arg map[string]string
+    Env map[string]string
+}
+
 var opts struct {
-    Mode                    string   `short:"m"  long:"mode"                          description:"replacement mode - replace: replace match with term; line: replace line with term; lineinfile: replace line with term or if not found append to term to file" default:"replace" choice:"replace" choice:"line" choice:"lineinfile"`
+    Mode                    string   `short:"m"  long:"mode"                          description:"replacement mode - replace: replace match with term; line: replace line with term; lineinfile: replace line with term or if not found append to term to file; template: parse content as golang template, search value have to start uppercase" default:"replace" choice:"replace" choice:"line" choice:"lineinfile" choice:"template"`
     ModeIsReplaceMatch      bool
     ModeIsReplaceLine       bool
     ModeIsLineInFile        bool
+    ModeIsTemplate          bool
     Search                  []string `short:"s"  long:"search"       required:"true"  description:"search term"`
     Replace                 []string `short:"r"  long:"replace"      required:"true"  description:"replacement term" `
     CaseInsensitive         bool     `short:"i"  long:"case-insensitive"              description:"ignore case of pattern to match upper and lowercase characters"`
@@ -111,6 +118,27 @@ func applyChangesetsToFile(fileitem fileitem, changesets []changeset) (string, b
     } else {
         output = fmt.Sprintf("%s no match", fileitem.Path)
     }
+
+    return output, status, err
+}
+
+// Apply changesets to file
+func applyTemplateToFile(fileitem fileitem, changesets []changeset) (string, bool, error) {
+    var (
+        err error = nil
+        output string = ""
+        status bool = true
+    )
+
+    // try open file
+    buffer, err := ioutil.ReadFile(fileitem.Path)
+    if err != nil {
+        return output, false, err
+    }
+
+    content := parseContentAsTemplate(string(buffer), changesets)
+
+    output, status = writeContentToFile(fileitem, content)
 
     return output, status, err
 }
@@ -329,14 +357,22 @@ func handleSpecialCliOptions(argparser *flags.Parser, args []string) ([]string) 
             opts.ModeIsReplaceMatch = true
             opts.ModeIsReplaceLine = false
             opts.ModeIsLineInFile = false
+            opts.ModeIsTemplate = false
         case "line":
             opts.ModeIsReplaceMatch = false
             opts.ModeIsReplaceLine = true
             opts.ModeIsLineInFile = false
+            opts.ModeIsTemplate = false
         case "lineinfile":
             opts.ModeIsReplaceMatch = false
             opts.ModeIsReplaceLine = false
             opts.ModeIsLineInFile = true
+            opts.ModeIsTemplate = false
+        case "template":
+            opts.ModeIsReplaceMatch = false
+            opts.ModeIsReplaceLine = false
+            opts.ModeIsLineInFile = false
+            opts.ModeIsTemplate = true
     }
 
     // --path
@@ -355,7 +391,7 @@ func handleSpecialCliOptions(argparser *flags.Parser, args []string) ([]string) 
     return args
 }
 
-func actionProcessStdin(changesets []changeset) (int) {
+func actionProcessStdinReplace(changesets []changeset) (int) {
     scanner := bufio.NewScanner(os.Stdin)
     for scanner.Scan() {
         line := scanner.Text()
@@ -366,6 +402,58 @@ func actionProcessStdin(changesets []changeset) (int) {
             fmt.Println(newLine)
         }
     }
+
+    return 0
+}
+
+
+func generateTemplateData(changesets []changeset) (templateData) {
+    // init
+    var ret templateData
+    ret.Arg = make(map[string]string)
+    ret.Env = make(map[string]string)
+
+    // add changesets
+    for i := range changesets {
+        changeset := changesets[i]
+        ret.Arg[changeset.Search.String()] = changeset.Replace
+    }
+
+    // add env variables
+    for _, e := range os.Environ() {
+        pair := strings.Split(e, "=")
+        ret.Env[pair[0]] = pair[1]
+    }
+
+    return ret
+}
+
+func parseContentAsTemplate(templateContent string, changesets []changeset) bytes.Buffer {
+    var content bytes.Buffer
+    data := generateTemplateData(changesets)
+
+    tmpl, err := template.New("template").Parse(templateContent)
+    if err != nil {
+        logError(err)
+    }
+    err = tmpl.Execute(&content, &data)
+    if err != nil {
+        logError(err)
+    }
+
+    return content
+}
+
+func actionProcessStdinTemplate(changesets []changeset) (int) {
+    var buffer bytes.Buffer
+
+    scanner := bufio.NewScanner(os.Stdin)
+    for scanner.Scan() {
+        buffer.WriteString(scanner.Text() + "\n")
+    }
+
+    content := parseContentAsTemplate(buffer.String(), changesets)
+    fmt.Println(content.String())
 
     return 0
 }
@@ -397,7 +485,17 @@ func actionProcessFiles(changesets []changeset, args []string, argparser *flags.
 
         wg.Add(1)
         go func(file fileitem, changesets []changeset) {
-            output, status, err := applyChangesetsToFile(file, changesets)
+            var (
+                err error = nil
+                output string = ""
+                status bool = true
+            )
+
+            if opts.ModeIsTemplate {
+                output, status, err = applyTemplateToFile(file, changesets)
+            } else {
+                output, status, err = applyChangesetsToFile(file, changesets)
+            }
             results <- changeresult{file, output, status, err}
             wg.Done()
         } (file, changesets);
@@ -478,8 +576,13 @@ func main() {
 
     exitMode := 0
     if opts.Stdin {
-        // use stdin as input
-        exitMode = actionProcessStdin(changesets)
+        if opts.ModeIsTemplate {
+            // use stdin as input
+            exitMode = actionProcessStdinTemplate(changesets)
+        } else {
+            // use stdin as input
+            exitMode = actionProcessStdinReplace(changesets)
+        }
     } else {
         // use and process files (see args)
         exitMode = actionProcessFiles(changesets, args, argparser)
