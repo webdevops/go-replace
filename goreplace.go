@@ -21,6 +21,7 @@ const (
 )
 
 type changeset struct {
+    SearchPlain string
     Search      *regexp.Regexp
     Replace     string
     MatchFound  bool
@@ -425,7 +426,7 @@ func generateTemplateData(changesets []changeset) (templateData) {
     // add changesets
     for i := range changesets {
         changeset := changesets[i]
-        ret.Arg[changeset.Search.String()] = changeset.Replace
+        ret.Arg[changeset.SearchPlain] = changeset.Replace
     }
 
     // add env variables
@@ -564,7 +565,7 @@ func buildChangesets() ([]changeset){
         search := opts.Search[i]
         replace := opts.Replace[i]
 
-        changeset := changeset{buildSearchTerm(search), replace, false}
+        changeset := changeset{search, buildSearchTerm(search), replace, false}
         changesets = append(changesets, changeset)
     }
 
