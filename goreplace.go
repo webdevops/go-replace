@@ -453,7 +453,7 @@ func actionProcessStdinTemplate(changesets []changeset) (int) {
     }
 
     content := parseContentAsTemplate(buffer.String(), changesets)
-    fmt.Println(content.String())
+    fmt.Print(content.String())
 
     return 0
 }

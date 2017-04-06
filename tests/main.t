@@ -350,3 +350,22 @@ Testing template mode:
   this is the second line
   this is the third foobar line
   this is the last line
+
+Testing template mode:
+
+  $ cat > test.txt <<EOF
+  > {{23 -}} < {{- 45}}
+  > {{.Arg.Foobar}}
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the last line
+  > EOF
+  $ cat test.txt | goreplace --mode=template --stdin -s Foobar -r ___xxx test.txt
+  23<45
+  ___xxx
+  this is a testline
+  this is the second line
+  this is the third foobar line
+  this is the last line
+
