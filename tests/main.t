@@ -30,6 +30,21 @@ Testing replace mode:
   this is the third ___xxx line
   this is the last line
 
+Testing replace mode with multiple changesets:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second barfoo line
+  > this is the third foobar line
+  > this is the last oofrab line
+  > EOF
+  $ goreplace -s foobar -r 111 -s barfoo -r 222 -s oofrab -r 333 test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second 222 line
+  this is the third 111 line
+  this is the last 333 line
+
 Testing replace mode with stdin:
 
   $ cat > test.txt <<EOF
