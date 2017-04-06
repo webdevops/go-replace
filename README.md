@@ -3,6 +3,8 @@
 [![GitHub release](https://img.shields.io/github/release/webdevops/goreplace.svg)](https://github.com/webdevops/goreplace/releases)
 [![license](https://img.shields.io/github/license/webdevops/goreplace.svg)](https://github.com/webdevops/goreplace/blob/master/LICENSE)
 [![Build Status](https://travis-ci.org/webdevops/goreplace.svg?branch=master)](https://travis-ci.org/webdevops/goreplace)
+[![Github All Releases](https://img.shields.io/github/downloads/webdevops/goreplace/total.svg)]()
+[![Github Releases](https://img.shields.io/github/downloads/webdevops/goreplace/latest/total.svg)]()
 
 Cli utility for replacing text in files, written in golang and compiled for usage in Docker images
 
