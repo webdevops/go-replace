@@ -417,6 +417,27 @@ Testing template mode with only env and empty var:
   this is the last line
 
 
+Testing template mode with only env and empty var:
+
+  $ cat > test.txt <<EOF
+  > {{23 -}} < {{- 45}}
+  > {{.Env.Foobar}}
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the last line
+  > EOF
+  $ Foobar="bar=foo" goreplace --mode=template test.txt
+  $ cat test.txt
+  23<45
+  bar=foo
+  this is a testline
+  this is the second line
+  this is the third foobar line
+  this is the last line
+
+
+
 Testing template mode:
 
   $ cat > test.txt <<EOF

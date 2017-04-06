@@ -17,7 +17,7 @@ import (
 
 const (
     Author  = "webdevops.io"
-    Version = "0.5.1"
+    Version = "0.5.2"
 )
 
 type changeset struct {
@@ -431,7 +431,11 @@ func generateTemplateData(changesets []changeset) (templateData) {
     // add env variables
     for _, e := range os.Environ() {
         pair := strings.Split(e, "=")
-        ret.Env[pair[0]] = pair[1]
+
+        envKey := pair[0]
+        envValue := strings.Join(pair[1:], "=")
+
+        ret.Env[envKey] = envValue
     }
 
     return ret
