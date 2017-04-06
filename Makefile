@@ -7,7 +7,9 @@ ALL = \
 	$(foreach suffix,linux osx win.exe,\
 		build/gr-$(arch)-$(suffix)))
 
-all: clean $(ALL)
+all: test build
+
+build: clean test $(ALL)
 
 # cram is a python app, so 'easy_install/pip install cram' to run tests
 test:
