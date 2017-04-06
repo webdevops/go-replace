@@ -16,7 +16,7 @@ import (
 
 const (
     Author  = "webdevops.io"
-    Version = "0.4.0"
+    Version = "0.5.0"
 )
 
 type changeset struct {
@@ -44,6 +44,7 @@ var opts struct {
     Search                  []string `short:"s"  long:"search"       required:"true"  description:"search term"`
     Replace                 []string `short:"r"  long:"replace"      required:"true"  description:"replacement term" `
     CaseInsensitive         bool     `short:"i"  long:"case-insensitive"              description:"ignore case of pattern to match upper and lowercase characters"`
+    Stdin                   bool     `           long:"stdin"                         description:"process stdin as input"`
     Once                    bool     `           long:"once"                          description:"replace search term only one in a file"`
     OnceRemoveMatch         bool     `           long:"once-remove-match"             description:"replace search term only one in a file and also don't keep matching lines (for line and lineinfile mode)"`
     Regex                   bool     `           long:"regex"                         description:"treat pattern as regex"`
@@ -81,40 +82,14 @@ func applyChangesetsToFile(fileitem fileitem, changesets []changeset) (string, b
     r := bufio.NewReader(file)
     line, e := Readln(r)
     for e == nil {
-        writeLine := true
+        newLine, lineChanged, skipLine := applyChangesetsToLine(line, changesets)
 
-        for i := range changesets {
-            changeset := changesets[i]
-
-            // --once, only do changeset once if already applied to file
-            if opts.Once && changeset.MatchFound {
-                // --once-without-match, skip matching lines
-                if opts.OnceRemoveMatch && searchMatch(line, changeset) {
-                    // matching line, not writing to buffer as requsted
-                    writeLine = false
-                    writeBufferToFile = true
-                    break
-                }
-            } else {
-                // search and replace
-                if searchMatch(line, changeset) {
-                    // --mode=line or --mode=lineinfile
-                    if opts.ModeIsReplaceLine || opts.ModeIsLineInFile {
-                        // replace whole line with replace term
-                        line = changeset.Replace
-                    } else {
-                        // replace only term inside line
-                        line = replaceText(line, changeset)
-                    }
-
-                    changesets[i].MatchFound = true
-                    writeBufferToFile = true
-                }
-            }
+        if lineChanged || skipLine {
+            writeBufferToFile = true
         }
 
-        if (writeLine) {
-            buffer.WriteString(line + "\n")
+        if !skipLine {
+            buffer.WriteString(newLine + "\n")
         }
 
         line, e = Readln(r)
@@ -138,6 +113,43 @@ func applyChangesetsToFile(fileitem fileitem, changesets []changeset) (string, b
     }
 
     return output, status, err
+}
+
+func applyChangesetsToLine(line string, changesets []changeset) (string, bool, bool) {
+    changed := false
+    skipLine := false
+
+    for i := range changesets {
+        changeset := changesets[i]
+
+        // --once, only do changeset once if already applied to file
+        if opts.Once && changeset.MatchFound {
+            // --once-without-match, skip matching lines
+            if opts.OnceRemoveMatch && searchMatch(line, changeset) {
+                // matching line, not writing to buffer as requsted
+                skipLine = true
+                changed = true
+                break
+            }
+        } else {
+            // search and replace
+            if searchMatch(line, changeset) {
+                // --mode=line or --mode=lineinfile
+                if opts.ModeIsReplaceLine || opts.ModeIsLineInFile {
+                    // replace whole line with replace term
+                    line = changeset.Replace
+                } else {
+                    // replace only term inside line
+                    line = replaceText(line, changeset)
+                }
+
+                changesets[i].MatchFound = true
+                changed = true
+            }
+        }
+    }
+
+    return line, changed, skipLine
 }
 
 // Readln returns a single line (without the ending \n)
@@ -195,13 +207,13 @@ func writeContentToFile(fileitem fileitem, content bytes.Buffer) (string, bool) 
 // Log message
 func logMessage(message string) {
     if opts.Verbose {
-        fmt.Println(message)
+        fmt.Fprintln(os.Stderr, message)
     }
 }
 
 // Log error object as message
 func logError(err error) {
-    fmt.Printf("Error: %s\n", err)
+    fmt.Fprintln(os.Stderr, "Error: %s\n", err)
 }
 
 // Build search term
@@ -343,43 +355,23 @@ func handleSpecialCliOptions(argparser *flags.Parser, args []string) ([]string) 
     return args
 }
 
-func main() {
-    var changesets = []changeset {}
+func actionProcessStdin(changesets []changeset) (int) {
+    scanner := bufio.NewScanner(os.Stdin)
+    for scanner.Scan() {
+        line := scanner.Text()
 
-    var argparser = flags.NewParser(&opts, flags.PassDoubleDash)
-    args, err := argparser.Parse()
+        newLine, _, skipLine := applyChangesetsToLine(line, changesets)
 
-    args = handleSpecialCliOptions(argparser, args)
-
-    // check if there is an parse error
-    if err != nil {
-        logError(err)
-        fmt.Println()
-        argparser.WriteHelp(os.Stdout)
-        os.Exit(1)
+        if !skipLine {
+            fmt.Println(newLine)
+        }
     }
 
-    // check if search and replace options have equal lenght (equal number of options)
-    if len(opts.Search) != len(opts.Replace) {
-        // error: unequal numbers of search and replace options
-        err := errors.New("Unequal numbers of search or replace options")
-        logError(err)
-        fmt.Println()
-        argparser.WriteHelp(os.Stdout)
-        os.Exit(1)
-    }
+    return 0
+}
 
-    // build changesets
-    for i := range opts.Search {
-        search := opts.Search[i]
-        replace := opts.Replace[i]
-
-        changeset := changeset{buildSearchTerm(search), replace, false}
-
-        changesets = append(changesets, changeset)
-    }
-
-     // check if there is at least one file to process
+func actionProcessFiles(changesets []changeset, args []string, argparser *flags.Parser) (int) {
+    // check if there is at least one file to process
     if (len(args) == 0) {
         if (opts.IgnoreEmpty) {
             // no files found, but we should ignore empty filelist
@@ -389,9 +381,9 @@ func main() {
             // no files found, print error and exit with error code
             err := errors.New("No files specified")
             logError(err)
-            fmt.Println()
+            fmt.Fprintln(os.Stderr, "")
             argparser.WriteHelp(os.Stdout)
-            os.Exit(1)
+            return 1
         }
     }
 
@@ -426,20 +418,72 @@ func main() {
         } else if opts.Verbose {
             title := fmt.Sprintf("%s:", result.File.Path)
 
-            fmt.Println()
-            fmt.Println(title)
-            fmt.Println(strings.Repeat("-", len(title)))
-            fmt.Println()
-            fmt.Println(result.Output)
-            fmt.Println()
+            fmt.Fprintln(os.Stderr, "")
+            fmt.Fprintln(os.Stderr, title)
+            fmt.Fprintln(os.Stderr, strings.Repeat("-", len(title)))
+            fmt.Fprintln(os.Stderr, "")
+            fmt.Fprintln(os.Stderr, result.Output)
+            fmt.Fprintln(os.Stderr, "")
         }
     }
 
     if errorCount >= 1 {
-        fmt.Println(fmt.Sprintf("[ERROR] %s failed with %d error(s)", argparser.Command.Name, errorCount))
-        os.Exit(1)
-    } else {
-        os.Exit(0)
+        fmt.Fprintln(os.Stderr, fmt.Sprintf("[ERROR] %s failed with %d error(s)", argparser.Command.Name, errorCount))
+        return 1
     }
 
+    return 0
+}
+
+func buildChangesets(argparser *flags.Parser) ([]changeset){
+    var changesets []changeset
+
+    // check if search and replace options have equal lenght (equal number of options)
+    if len(opts.Search) != len(opts.Replace) {
+        // error: unequal numbers of search and replace options
+        err := errors.New("Unequal numbers of search or replace options")
+        logError(err)
+        fmt.Fprintln(os.Stderr, "")
+        argparser.WriteHelp(os.Stdout)
+        os.Exit(1)
+    }
+
+    // build changesets
+    for i := range opts.Search {
+        search := opts.Search[i]
+        replace := opts.Replace[i]
+
+        changeset := changeset{buildSearchTerm(search), replace, false}
+        changesets = append(changesets, changeset)
+    }
+
+    return changesets
+}
+
+func main() {
+    var argparser = flags.NewParser(&opts, flags.PassDoubleDash)
+    args, err := argparser.Parse()
+
+    args = handleSpecialCliOptions(argparser, args)
+
+    // check if there is an parse error
+    if err != nil {
+        logError(err)
+        fmt.Fprintln(os.Stderr, "")
+        argparser.WriteHelp(os.Stdout)
+        os.Exit(1)
+    }
+
+    changesets := buildChangesets(argparser)
+
+    exitMode := 0
+    if opts.Stdin {
+        // use stdin as input
+        exitMode = actionProcessStdin(changesets)
+    } else {
+        // use and process files (see args)
+        exitMode = actionProcessFiles(changesets, args, argparser)
+    }
+
+    os.Exit(exitMode)
 }

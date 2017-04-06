@@ -20,6 +20,7 @@ Usage:
     -r, --replace=                       replacement term
     -i, --case-insensitive               ignore case of pattern to match upper
                                          and lowercase characters
+        --stdin                          process stdin as input
         --once                           replace search term only one in a file
         --once-remove-match              replace search term only one in a file
                                          and also don't keep matching lines (for
@@ -57,6 +58,20 @@ Testing replace mode:
   > EOF
   $ goreplace -s foobar -r ___xxx test.txt
   $ cat test.txt
+  this is a testline
+  this is the second line
+  this is the third ___xxx line
+  this is the last line
+
+Testing replace mode with stdin:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the last line
+  > EOF
+  $ cat test.txt | goreplace -s foobar -r ___xxx --stdin
   this is a testline
   this is the second line
   this is the third ___xxx line

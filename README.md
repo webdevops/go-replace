@@ -15,21 +15,29 @@ Usage:
   goreplace
 
 Application Options:
-  -m, --mode=[replace|line|lineinfile] replacement mode - replace: replace match with term; line: replace line with term; lineinfile:
-                                       replace line with term or if not found append to term to file (default: replace)
+  -m, --mode=[replace|line|lineinfile] replacement mode - replace: replace
+                                       match with term; line: replace line with
+                                       term; lineinfile: replace line with term
+                                       or if not found append to term to file
+                                       (default: replace)
   -s, --search=                        search term
   -r, --replace=                       replacement term
-  -i, --case-insensitive               ignore case of pattern to match upper and lowercase characters
+  -i, --case-insensitive               ignore case of pattern to match upper
+                                       and lowercase characters
+      --stdin                          process stdin as input
       --once                           replace search term only one in a file
-      --once-remove-match              replace search term only one in a file and also don't keep matching lines (for line and lineinfile
-                                       mode)
+      --once-remove-match              replace search term only one in a file
+                                       and also don't keep matching lines (for
+                                       line and lineinfile mode)
       --regex                          treat pattern as regex
       --regex-backrefs                 enable backreferences in replace term
       --regex-posix                    parse regex term as POSIX regex
       --path=                          use files in this path
-      --path-pattern=                  file pattern (* for wildcard, only basename of file)
+      --path-pattern=                  file pattern (* for wildcard, only
+                                       basename of file)
       --path-regex=                    file pattern (regex, full path)
-      --ignore-empty                   ignore empty file list, otherwise this will result in an error
+      --ignore-empty                   ignore empty file list, otherwise this
+                                       will result in an error
   -v, --verbose                        verbose mode
       --dry-run                        dry run mode
   -V, --version                        show version and exit
@@ -57,7 +65,7 @@ Application Options:
 ## Installation
 
 ```bash
-GOREPLACE_VERSION=0.4.0 \
+GOREPLACE_VERSION=0.5.0 \
 && wget -O /usr/local/bin/go-replace https://github.com/webdevops/goreplace/releases/download/$GOREPLACE_VERSION/gr-64-linux \
 && chmod +x /usr/local/bin/go-replace
 ```
