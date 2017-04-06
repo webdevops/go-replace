@@ -17,7 +17,7 @@ import (
 
 const (
     Author  = "webdevops.io"
-    Version = "0.5.0"
+    Version = "0.5.1"
 )
 
 type changeset struct {
@@ -48,8 +48,8 @@ var opts struct {
     ModeIsReplaceLine       bool
     ModeIsLineInFile        bool
     ModeIsTemplate          bool
-    Search                  []string `short:"s"  long:"search"       required:"true"  description:"search term"`
-    Replace                 []string `short:"r"  long:"replace"      required:"true"  description:"replacement term" `
+    Search                  []string `short:"s"  long:"search"                        description:"search term"`
+    Replace                 []string `short:"r"  long:"replace"                       description:"replacement term" `
     CaseInsensitive         bool     `short:"i"  long:"case-insensitive"              description:"ignore case of pattern to match upper and lowercase characters"`
     Stdin                   bool     `           long:"stdin"                         description:"process stdin as input"`
     Once                    bool     `           long:"once"                          description:"replace search term only one in a file"`
@@ -244,6 +244,15 @@ func logError(err error) {
     fmt.Fprintln(os.Stderr, "Error: %s\n", err)
 }
 
+
+// Log error object as message
+func logFatalErrorAndExit(err error, exitCode int) {
+    fmt.Fprintln(os.Stderr, "Error: %s\n", err)
+    fmt.Fprintln(os.Stderr, "")
+    argparser.WriteHelp(os.Stdout)
+    os.Exit(exitCode)
+}
+
 // Build search term
 // Compiles regexp if regexp is used
 func buildSearchTerm(term string) (*regexp.Regexp) {
@@ -338,7 +347,7 @@ func searchFilesInPath(path string, callback func(os.FileInfo, string)) {
 //     --path
 //     --mode=...
 //     --once-without-match
-func handleSpecialCliOptions(argparser *flags.Parser, args []string) ([]string) {
+func handleSpecialCliOptions(args []string) ([]string) {
     // --version
     if (opts.ShowVersion) {
         fmt.Printf("goreplace version %s\n", Version)
@@ -434,11 +443,12 @@ func parseContentAsTemplate(templateContent string, changesets []changeset) byte
 
     tmpl, err := template.New("template").Parse(templateContent)
     if err != nil {
-        logError(err)
+        logFatalErrorAndExit(err, 1)
     }
+    tmpl.Option("missingkey=zero")
     err = tmpl.Execute(&content, &data)
     if err != nil {
-        logError(err)
+        logFatalErrorAndExit(err, 1)
     }
 
     return content
@@ -458,7 +468,7 @@ func actionProcessStdinTemplate(changesets []changeset) (int) {
     return 0
 }
 
-func actionProcessFiles(changesets []changeset, args []string, argparser *flags.Parser) (int) {
+func actionProcessFiles(changesets []changeset, args []string) (int) {
     // check if there is at least one file to process
     if (len(args) == 0) {
         if (opts.IgnoreEmpty) {
@@ -467,11 +477,7 @@ func actionProcessFiles(changesets []changeset, args []string, argparser *flags.
             os.Exit(0)
         } else {
             // no files found, print error and exit with error code
-            err := errors.New("No files specified")
-            logError(err)
-            fmt.Fprintln(os.Stderr, "")
-            argparser.WriteHelp(os.Stdout)
-            return 1
+            logFatalErrorAndExit(errors.New("No files specified"), 1)
         }
     }
 
@@ -533,17 +539,20 @@ func actionProcessFiles(changesets []changeset, args []string, argparser *flags.
     return 0
 }
 
-func buildChangesets(argparser *flags.Parser) ([]changeset){
+func buildChangesets() ([]changeset){
     var changesets []changeset
+
+    if !opts.ModeIsTemplate {
+        if len(opts.Search) == 0 || len(opts.Replace) == 0 {
+            // error: unequal numbers of search and replace options
+            logFatalErrorAndExit(errors.New("Missing either --search or --replace for this mode"), 1)
+        }
+    }
 
     // check if search and replace options have equal lenght (equal number of options)
     if len(opts.Search) != len(opts.Replace) {
         // error: unequal numbers of search and replace options
-        err := errors.New("Unequal numbers of search or replace options")
-        logError(err)
-        fmt.Fprintln(os.Stderr, "")
-        argparser.WriteHelp(os.Stdout)
-        os.Exit(1)
+        logFatalErrorAndExit(errors.New("Unequal numbers of search or replace options"), 1)
     }
 
     // build changesets
@@ -558,21 +567,19 @@ func buildChangesets(argparser *flags.Parser) ([]changeset){
     return changesets
 }
 
+var argparser *flags.Parser
 func main() {
-    var argparser = flags.NewParser(&opts, flags.PassDoubleDash)
+    argparser = flags.NewParser(&opts, flags.PassDoubleDash)
     args, err := argparser.Parse()
 
-    args = handleSpecialCliOptions(argparser, args)
+    args = handleSpecialCliOptions(args)
 
     // check if there is an parse error
     if err != nil {
-        logError(err)
-        fmt.Fprintln(os.Stderr, "")
-        argparser.WriteHelp(os.Stdout)
-        os.Exit(1)
+        logFatalErrorAndExit(err, 1)
     }
 
-    changesets := buildChangesets(argparser)
+    changesets := buildChangesets()
 
     exitMode := 0
     if opts.Stdin {
@@ -585,7 +592,7 @@ func main() {
         }
     } else {
         // use and process files (see args)
-        exitMode = actionProcessFiles(changesets, args, argparser)
+        exitMode = actionProcessFiles(changesets, args)
     }
 
     os.Exit(exitMode)

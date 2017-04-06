@@ -366,6 +366,45 @@ Testing template mode:
   this is the third foobar line
   this is the last line
 
+Testing template mode with only env:
+
+  $ cat > test.txt <<EOF
+  > {{23 -}} < {{- 45}}
+  > {{.Env.Foobar}}
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the last line
+  > EOF
+  $ Foobar=barfoo goreplace --mode=template test.txt
+  $ cat test.txt
+  23<45
+  barfoo
+  this is a testline
+  this is the second line
+  this is the third foobar line
+  this is the last line
+
+Testing template mode with only env and empty var:
+
+  $ cat > test.txt <<EOF
+  > {{23 -}} < {{- 45}}
+  > begin{{.Env.Foobar}}end
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the last line
+  > EOF
+  $ Foobar= goreplace --mode=template test.txt
+  $ cat test.txt
+  23<45
+  beginend
+  this is a testline
+  this is the second line
+  this is the third foobar line
+  this is the last line
+
+
 Testing template mode:
 
   $ cat > test.txt <<EOF
