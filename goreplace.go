@@ -242,13 +242,13 @@ func logMessage(message string) {
 
 // Log error object as message
 func logError(err error) {
-    fmt.Fprintln(os.Stderr, "Error: %s\n", err)
+    fmt.Fprintln(os.Stderr, fmt.Sprintf("Error: %s\n", err))
 }
 
 
 // Log error object as message
 func logFatalErrorAndExit(err error, exitCode int) {
-    fmt.Fprintln(os.Stderr, "Error: %s\n", err)
+    fmt.Fprintln(os.Stderr, fmt.Sprintf("Error: %s\n", err))
     fmt.Fprintln(os.Stderr, "")
     argparser.WriteHelp(os.Stdout)
     os.Exit(exitCode)
