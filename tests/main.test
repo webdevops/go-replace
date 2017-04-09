@@ -450,11 +450,40 @@ Testing template mode:
   > this is the third foobar line
   > this is the last line
   > EOF
-  $ cat test.txt | goreplace --mode=template --stdin -s Foobar -r ___xxx test.txt
+  $ cat test.txt | goreplace --mode=template --stdin -s Foobar -r ___xxx
   23<45
   ___xxx
   this is a testline
   this is the second line
   this is the third foobar line
   this is the last line
+
+Testing with output:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the last line
+  > EOF
+  $ goreplace -s foobar -r ___xxx test.txt --output test.output
+  $ cat test.output
+  this is a testline
+  this is the second line
+  this is the third ___xxx line
+  this is the last line
+
+Testing with output:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the last line
+  > EOF
+  $ cp test.txt test2.txt
+  $ goreplace -s foobar -r ___xxx test.txt test2.txt --output test.output
+  Error: Only one file is allowed when using --output
+  
+  [1]
 

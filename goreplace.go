@@ -17,7 +17,7 @@ import (
 
 const (
     Author  = "webdevops.io"
-    Version = "0.5.2"
+    Version = "0.5.4"
 )
 
 type changeset struct {
@@ -53,6 +53,7 @@ var opts struct {
     Replace                 []string `short:"r"  long:"replace"                       description:"replacement term" `
     CaseInsensitive         bool     `short:"i"  long:"case-insensitive"              description:"ignore case of pattern to match upper and lowercase characters"`
     Stdin                   bool     `           long:"stdin"                         description:"process stdin as input"`
+    Output                  string   `short:"o"  long:"output"                        description:"write changes to this file (in one file mode)"`
     Once                    string   `           long:"once"                          description:"replace search term only one in a file, keep duplicaes (keep, default) or remove them (unique)" optional:"true" optional-value:"keep" choice:"keep" choice:"unique"`
     Regex                   bool     `           long:"regex"                         description:"treat pattern as regex"`
     RegexBackref            bool     `           long:"regex-backrefs"                description:"enable backreferences in replace term"`
@@ -223,7 +224,15 @@ func writeContentToFile(fileitem fileitem, content bytes.Buffer) (string, bool) 
         return content.String(), true
     } else {
         var err error
-        err = ioutil.WriteFile(fileitem.Path, content.Bytes(), 0)
+
+        filepath := fileitem.Path
+
+        // --output
+        if (opts.Output != "") {
+            filepath = opts.Output
+        }
+
+        err = ioutil.WriteFile(filepath, content.Bytes(), 0644)
         if err != nil {
             panic(err)
         }
@@ -386,6 +395,11 @@ func handleSpecialCliOptions(args []string) ([]string) {
         searchFilesInPath(opts.Path, func(f os.FileInfo, path string) {
             args = append(args, path)
         })
+    }
+
+    // --output
+    if (opts.Output != "" && len(args) > 1) {
+        logFatalErrorAndExit(errors.New("Only one file is allowed when using --output"), 1)
     }
 
     return args
