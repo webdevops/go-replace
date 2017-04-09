@@ -53,8 +53,7 @@ var opts struct {
     Replace                 []string `short:"r"  long:"replace"                       description:"replacement term" `
     CaseInsensitive         bool     `short:"i"  long:"case-insensitive"              description:"ignore case of pattern to match upper and lowercase characters"`
     Stdin                   bool     `           long:"stdin"                         description:"process stdin as input"`
-    Once                    bool     `           long:"once"                          description:"replace search term only one in a file"`
-    OnceRemoveMatch         bool     `           long:"once-remove-match"             description:"replace search term only one in a file and also don't keep matching lines (for line and lineinfile mode)"`
+    Once                    string   `           long:"once"                          description:"replace search term only one in a file, keep duplicaes (keep, default) or remove them (unique)" optional:"true" optional-value:"keep" choice:"keep" choice:"unique"`
     Regex                   bool     `           long:"regex"                         description:"treat pattern as regex"`
     RegexBackref            bool     `           long:"regex-backrefs"                description:"enable backreferences in replace term"`
     RegexPosix              bool     `           long:"regex-posix"                   description:"parse regex term as POSIX regex"`
@@ -152,9 +151,9 @@ func applyChangesetsToLine(line string, changesets []changeset) (string, bool, b
         changeset := changesets[i]
 
         // --once, only do changeset once if already applied to file
-        if opts.Once && changeset.MatchFound {
-            // --once-without-match, skip matching lines
-            if opts.OnceRemoveMatch && searchMatch(line, changeset) {
+        if opts.Once != "" && changeset.MatchFound {
+            // --once=unique, skip matching lines
+            if opts.Once == "unique" && searchMatch(line, changeset) {
                 // matching line, not writing to buffer as requsted
                 skipLine = true
                 changed = true
@@ -345,7 +344,6 @@ func searchFilesInPath(path string, callback func(os.FileInfo, string)) {
 //     --version
 //     --path
 //     --mode=...
-//     --once-without-match
 func handleSpecialCliOptions(args []string) ([]string) {
     // --version
     if (opts.ShowVersion) {
@@ -388,12 +386,6 @@ func handleSpecialCliOptions(args []string) ([]string) {
         searchFilesInPath(opts.Path, func(f os.FileInfo, path string) {
             args = append(args, path)
         })
-    }
-
-    // --once-without-match
-    if opts.OnceRemoveMatch {
-        // implicit enables once mode
-        opts.Once = true
     }
 
     return args

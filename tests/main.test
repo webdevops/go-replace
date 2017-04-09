@@ -202,7 +202,7 @@ Testing line mode with multiple matches and --once:
   this is the foobar forth foobar line
   this is the last line
 
-Testing line mode with multiple matches and --once-remove-match:
+Testing line mode with multiple matches and --once=unique:
 
   $ cat > test.txt <<EOF
   > this is a testline
@@ -211,7 +211,7 @@ Testing line mode with multiple matches and --once-remove-match:
   > this is the foobar forth foobar line
   > this is the last line
   > EOF
-  $ goreplace --mode=line -s foobar -r ___xxx --once-remove-match test.txt
+  $ goreplace --mode=line -s foobar -r ___xxx --once=unique test.txt
   $ cat test.txt
   this is a testline
   this is the second line
@@ -270,7 +270,7 @@ Testing lineinfile mode with multiple matches and --once:
   this is the foobar forth foobar line
   this is the last line
 
-Testing lineinfile mode with multiple matches and --once-remove-match:
+Testing lineinfile mode with multiple matches and --once=unique:
 
   $ cat > test.txt <<EOF
   > this is a testline
@@ -279,7 +279,7 @@ Testing lineinfile mode with multiple matches and --once-remove-match:
   > this is the foobar forth foobar line
   > this is the last line
   > EOF
-  $ goreplace --mode=lineinfile -s foobar -r ___xxx --once-remove-match test.txt
+  $ goreplace --mode=lineinfile -s foobar -r ___xxx --once=unique test.txt
   $ cat test.txt
   this is a testline
   this is the second line
@@ -295,7 +295,7 @@ Testing lineinfile mode without match:
   > this is the foobar forth foobar line
   > this is the last line
   > EOF
-  $ goreplace --mode=lineinfile -s barfoo -r ___xxx --once-remove-match test.txt
+  $ goreplace --mode=lineinfile -s barfoo -r ___xxx --once=unique test.txt
   $ cat test.txt
   this is a testline
   this is the second line
