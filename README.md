@@ -91,7 +91,7 @@ go-replace --mode=template daemon.conf
 ## Installation
 
 ```bash
-GOREPLACE_VERSION=0.5.2 \
+GOREPLACE_VERSION=0.5.3 \
 && wget -O /usr/local/bin/go-replace https://github.com/webdevops/goreplace/releases/download/$GOREPLACE_VERSION/gr-64-linux \
 && chmod +x /usr/local/bin/go-replace
 ```
