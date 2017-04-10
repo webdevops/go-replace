@@ -17,7 +17,7 @@ import (
 
 const (
     Author  = "webdevops.io"
-    Version = "0.5.4"
+    Version = "0.6.0"
 )
 
 type changeset struct {
@@ -36,6 +36,7 @@ type changeresult struct {
 
 type fileitem struct {
     Path        string
+    Output      string
 }
 
 type templateData struct {
@@ -54,6 +55,7 @@ var opts struct {
     CaseInsensitive         bool     `short:"i"  long:"case-insensitive"              description:"ignore case of pattern to match upper and lowercase characters"`
     Stdin                   bool     `           long:"stdin"                         description:"process stdin as input"`
     Output                  string   `short:"o"  long:"output"                        description:"write changes to this file (in one file mode)"`
+    OutputStripFileExt      string   `           long:"output-strip-ext"              description:"strip file extension from written files (also available in multi file mode)"`
     Once                    string   `           long:"once"                          description:"replace search term only one in a file, keep duplicaes (keep, default) or remove them (unique)" optional:"true" optional-value:"keep" choice:"keep" choice:"unique"`
     Regex                   bool     `           long:"regex"                         description:"treat pattern as regex"`
     RegexBackref            bool     `           long:"regex-backrefs"                description:"enable backreferences in replace term"`
@@ -112,6 +114,13 @@ func applyChangesetsToFile(fileitem fileitem, changesets []changeset) (string, b
                 writeBufferToFile = true
             }
         }
+    }
+
+    // --output
+    // --output-strip-ext
+    // enforcing writing of file (creating new file)
+    if (opts.Output != "" || opts.OutputStripFileExt != "") {
+        writeBufferToFile = true
     }
 
     if writeBufferToFile {
@@ -224,15 +233,7 @@ func writeContentToFile(fileitem fileitem, content bytes.Buffer) (string, bool) 
         return content.String(), true
     } else {
         var err error
-
-        filepath := fileitem.Path
-
-        // --output
-        if (opts.Output != "") {
-            filepath = opts.Output
-        }
-
-        err = ioutil.WriteFile(filepath, content.Bytes(), 0644)
+        err = ioutil.WriteFile(fileitem.Output, content.Bytes(), 0644)
         if err != nil {
             panic(err)
         }
@@ -477,9 +478,9 @@ func actionProcessStdinTemplate(changesets []changeset) (int) {
     return 0
 }
 
-func actionProcessFiles(changesets []changeset, args []string) (int) {
+func actionProcessFiles(changesets []changeset, fileitems []fileitem) (int) {
     // check if there is at least one file to process
-    if (len(args) == 0) {
+    if (len(fileitems) == 0) {
         if (opts.IgnoreEmpty) {
             // no files found, but we should ignore empty filelist
             logMessage("No files found, requsted to ignore this")
@@ -495,8 +496,8 @@ func actionProcessFiles(changesets []changeset, args []string) (int) {
     var wg sync.WaitGroup
 
     // process file list
-    for i := range args {
-        file := fileitem{args[i]}
+    for i := range fileitems {
+        file := fileitems[i]
 
         wg.Add(1)
         go func(file fileitem, changesets []changeset) {
@@ -576,6 +577,25 @@ func buildChangesets() ([]changeset){
     return changesets
 }
 
+func buildFileitems(args []string) ([]fileitem) {
+    var fileitems []fileitem
+
+    for i := range args {
+        filepath := args[i]
+        file := fileitem{filepath, filepath}
+
+        if opts.Output != "" {
+            file.Output = opts.Output
+        } else if opts.OutputStripFileExt != "" {
+            file.Output = strings.TrimSuffix(file.Output, opts.OutputStripFileExt)
+        }
+
+        fileitems = append(fileitems, file)
+    }
+
+    return fileitems
+}
+
 var argparser *flags.Parser
 func main() {
     argparser = flags.NewParser(&opts, flags.PassDoubleDash)
@@ -589,6 +609,7 @@ func main() {
     }
 
     changesets := buildChangesets()
+    fileitems := buildFileitems(args)
 
     exitMode := 0
     if opts.Stdin {
@@ -601,7 +622,7 @@ func main() {
         }
     } else {
         // use and process files (see args)
-        exitMode = actionProcessFiles(changesets, args)
+        exitMode = actionProcessFiles(changesets, fileitems)
     }
 
     os.Exit(exitMode)

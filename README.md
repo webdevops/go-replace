@@ -17,14 +17,17 @@ Usage:
   goreplace
 
 Application Options:
-  -m, --mode=[replace|line|lineinfile|template] replacement mode - replace: replace match with term; line: replace line with term; lineinfile: replace line with term or if not found append to term to file; template:
-                                                parse content as golang template, search value have to start uppercase (default: replace)
+  -m, --mode=[replace|line|lineinfile|template] replacement mode - replace: replace match with term; line: replace line with term;
+                                                lineinfile: replace line with term or if not found append to term to file; template: parse
+                                                content as golang template, search value have to start uppercase (default: replace)
   -s, --search=                                 search term
   -r, --replace=                                replacement term
   -i, --case-insensitive                        ignore case of pattern to match upper and lowercase characters
       --stdin                                   process stdin as input
   -o, --output=                                 write changes to this file (in one file mode)
-      --once=[keep|unique]                      replace search term only one in a file, keep duplicaes (keep, default) or remove them (unique)
+      --output-strip-ext=                       strip file extension from written files (also available in multi file mode)
+      --once=[keep|unique]                      replace search term only one in a file, keep duplicaes (keep, default) or remove them
+                                                (unique)
       --regex                                   treat pattern as regex
       --regex-backrefs                          enable backreferences in replace term
       --regex-posix                             parse regex term as POSIX regex

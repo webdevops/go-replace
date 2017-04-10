@@ -438,9 +438,7 @@ Testing template mode with only env and empty var:
   this is the third foobar line
   this is the last line
 
-
-
-Testing template mode:
+Testing template mode with stdin:
 
   $ cat > test.txt <<EOF
   > {{23 -}} < {{- 45}}
@@ -458,7 +456,28 @@ Testing template mode:
   this is the third foobar line
   this is the last line
 
-Testing with output:
+Testing template mode with stdin:
+
+  $ cat > test.txt.tmpl <<EOF
+  > {{23 -}} < {{- 45}}
+  > {{.Arg.Foobar}}
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the last line
+  > EOF
+  $ goreplace --mode=template -s Foobar -r ___xxx --output-strip-ext=.tmpl test.txt.tmpl
+  $ cat test.txt
+  23<45
+  ___xxx
+  this is a testline
+  this is the second line
+  this is the third foobar line
+  this is the last line
+
+
+
+Testing with --output:
 
   $ cat > test.txt <<EOF
   > this is a testline
@@ -473,7 +492,7 @@ Testing with output:
   this is the third ___xxx line
   this is the last line
 
-Testing with output:
+Testing with --output but multiple arguments:
 
   $ cat > test.txt <<EOF
   > this is a testline
