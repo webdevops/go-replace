@@ -61,7 +61,7 @@ Application Options:
 
 ### Example with golang templates
 
-Configuration file `daemon.conf`:
+Configuration file `daemon.conf.tmpl`:
 ```
 <VirtualHost ...>
     ServerName {{.Env.SERVERNAME}}
@@ -73,15 +73,24 @@ Configuration file `daemon.conf`:
 Process file with:
 
 ```bash
-SERVERNAME=www.foobar.example
-DOCUMENTROOT=/var/www/foobar.example/
-go-replace --mode=template daemon.conf
+export SERVERNAME=www.foobar.example
+export DOCUMENTROOT=/var/www/foobar.example/
+go-replace --mode=template --output-strip-ext=.tmpl daemon.conf.tmpl
+```
+
+Reuslt file `daemon.conf`:
+```
+<VirtualHost ...>
+    ServerName www.foobar.example
+    DocumentRoot /var/www/foobar.example/
+<VirtualHost>
+
 ```
 
 ## Installation
 
 ```bash
-GOREPLACE_VERSION=0.5.4 \
+GOREPLACE_VERSION=0.6.0 \
 && wget -O /usr/local/bin/go-replace https://github.com/webdevops/goreplace/releases/download/$GOREPLACE_VERSION/gr-64-linux \
 && chmod +x /usr/local/bin/go-replace
 ```
