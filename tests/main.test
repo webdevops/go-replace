@@ -507,3 +507,18 @@ Testing with --output but multiple arguments:
   
   [1]
 
+Testing with source:dest:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the last line
+  > EOF
+  $ goreplace -s foobar -r ___xxx test.txt:test.output
+  $ cat test.output
+  this is a testline
+  this is the second line
+  this is the third ___xxx line
+  this is the last line
+

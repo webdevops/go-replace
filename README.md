@@ -41,6 +41,15 @@ Application Options:
   -h, --help                                    show this help message
 ```
 
+Files must be specified as arguments and will be overwritten after parsing. If you want an alternative location for
+saving the file the argument can be specified as `source:destination`, eg.
+`go-replace -s foobar -r barfoo daemon.conf.tmpl:daemon.conf`.
+
+If `--path` (with or without `--path-pattern` or `--path-regex`) the files inside path are used as source and will
+be overwritten. If `daemon.conf.tmpl` should be written as `daemon.conf` the option `--output-strip-ext=.tmpl` will do
+this based on the source file name.
+
+
 | Mode       | Description                                                                                                                                                    |
 |:-----------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | replace    | Replace search term inside one line with replacement.                                                                                                          |
@@ -75,7 +84,7 @@ Process file with:
 ```bash
 export SERVERNAME=www.foobar.example
 export DOCUMENTROOT=/var/www/foobar.example/
-go-replace --mode=template --output-strip-ext=.tmpl daemon.conf.tmpl
+go-replace --mode=template daemon.conf.tmpl:daemon.conf
 ```
 
 Reuslt file `daemon.conf`:

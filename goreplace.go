@@ -586,9 +586,17 @@ func buildFileitems(args []string) ([]fileitem) {
         file := fileitem{filepath, filepath}
 
         if opts.Output != "" {
+            // use specific output
             file.Output = opts.Output
         } else if opts.OutputStripFileExt != "" {
+            // remove file ext from saving destination
             file.Output = strings.TrimSuffix(file.Output, opts.OutputStripFileExt)
+        } else if strings.Contains(filepath, ":") {
+            // argument like "source:destination"
+            pair := strings.Split(filepath, ":")
+
+            file.Path = pair[0]
+            file.Output = pair[1]
         }
 
         fileitems = append(fileitems, file)
