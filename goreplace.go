@@ -357,7 +357,8 @@ func searchFilesInPath(path string, callback func(os.FileInfo, string)) {
 func handleSpecialCliOptions(args []string) ([]string) {
     // --version
     if (opts.ShowVersion) {
-        fmt.Printf("goreplace version %s\n", Version)
+        fmt.Println(fmt.Sprintf("goreplace version %s", Version))
+        fmt.Println(fmt.Sprintf("Copyright (C) 2017 %s", Author))
         os.Exit(0)
     }
 
