@@ -437,11 +437,8 @@ func generateTemplateData(changesets []changeset) (templateData) {
 
     // add env variables
     for _, e := range os.Environ() {
-        pair := strings.Split(e, "=")
-
-        envKey := pair[0]
-        envValue := strings.Join(pair[1:], "=")
-
+        split := strings.SplitN(e, "=", 2)
+        envKey, envValue := split[0], split[1]
         ret.Env[envKey] = envValue
     }
 
@@ -593,10 +590,10 @@ func buildFileitems(args []string) ([]fileitem) {
             file.Output = strings.TrimSuffix(file.Output, opts.OutputStripFileExt)
         } else if strings.Contains(filepath, ":") {
             // argument like "source:destination"
-            pair := strings.Split(filepath, ":")
+            split := strings.SplitN(filepath, ":", 2)
 
-            file.Path = pair[0]
-            file.Output = pair[1]
+            file.Path = split[0]
+            file.Output = split[1]
         }
 
         fileitems = append(fileitems, file)
