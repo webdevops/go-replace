@@ -1,10 +1,10 @@
 # goreplace
 
-[![GitHub release](https://img.shields.io/github/release/webdevops/goreplace.svg)](https://github.com/webdevops/goreplace/releases)
-[![license](https://img.shields.io/github/license/webdevops/goreplace.svg)](https://github.com/webdevops/goreplace/blob/master/LICENSE)
-[![Build Status](https://travis-ci.org/webdevops/goreplace.svg?branch=master)](https://travis-ci.org/webdevops/goreplace)
-[![Github All Releases](https://img.shields.io/github/downloads/webdevops/goreplace/total.svg)]()
-[![Github Releases](https://img.shields.io/github/downloads/webdevops/goreplace/latest/total.svg)]()
+[![GitHub release](https://img.shields.io/github/release/webdevops/go-replace.svg)](https://github.com/webdevops/go-replace/releases)
+[![license](https://img.shields.io/github/license/webdevops/go-replace.svg)](https://github.com/webdevops/go-replace/blob/master/LICENSE)
+[![Build Status](https://travis-ci.org/webdevops/go-replace.svg?branch=master)](https://travis-ci.org/webdevops/go-replace)
+[![Github All Releases](https://img.shields.io/github/downloads/webdevops/go-replace/total.svg)]()
+[![Github Releases](https://img.shields.io/github/downloads/webdevops/go-replace/latest/total.svg)]()
 
 Cli utility for replacing text in files, written in golang and compiled for usage in Docker images
 
@@ -100,7 +100,7 @@ Reuslt file `daemon.conf`:
 
 ```bash
 GOREPLACE_VERSION=0.6.0 \
-&& wget -O /usr/local/bin/go-replace https://github.com/webdevops/goreplace/releases/download/$GOREPLACE_VERSION/gr-64-linux \
+&& wget -O /usr/local/bin/go-replace https://github.com/webdevops/go-replace/releases/download/$GOREPLACE_VERSION/gr-64-linux \
 && chmod +x /usr/local/bin/go-replace
 ```
 
