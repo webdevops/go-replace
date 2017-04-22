@@ -34,11 +34,11 @@ release: $(ALL)
 ifndef desc
 	@echo "Run it as 'make release desc=tralala'"
 else
-	github-release release -u webdevops -r goreplace -t "$(TAG)" -n "$(TAG)" --description "$(desc)"
+	github-release release -u webdevops -r go-replace -t "$(TAG)" -n "$(TAG)" --description "$(desc)"
 	@for x in $(ALL); do \
 		echo "Uploading $$x" && \
 		github-release upload -u webdevops \
-                              -r goreplace \
+                              -r go-replace \
                               -t $(TAG) \
                               -f "$$x" \
                               -n "$$(basename $$x)"; \
