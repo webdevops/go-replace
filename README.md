@@ -1,4 +1,4 @@
-# goreplace
+# go-replace
 
 [![GitHub release](https://img.shields.io/github/release/webdevops/go-replace.svg)](https://github.com/webdevops/go-replace/releases)
 [![license](https://img.shields.io/github/license/webdevops/go-replace.svg)](https://github.com/webdevops/go-replace/blob/master/LICENSE)
@@ -14,7 +14,7 @@ Inspired by https://github.com/piranha/goreplace
 
 ```
 Usage:
-  goreplace
+  go-replace
 
 Application Options:
   -m, --mode=[replace|line|lineinfile|template] replacement mode - replace: replace match with term; line: replace line with term;
@@ -62,11 +62,11 @@ this based on the source file name.
 
 | Command                                                            | Description                                                                                      |
 |:-------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------|
-| `goreplace -s foobar -r barfoo file1 file2`                        | Replaces `foobar` to `barfoo` in file1 and file2                                                 |
-| `goreplace --regex -s 'foo.*' -r barfoo file1 file2`               | Replaces the regex `foo.*` to `barfoo` in file1 and file2                                        |
-| `goreplace --regex --ignore-case -s 'foo.*' -r barfoo file1 file2` | Replaces the regex `foo.*` (and ignore case) to `barfoo` in file1 and file2                      |
-| `goreplace --mode=line -s 'foobar' -r barfoo file1 file2`          | Replaces all lines with content `foobar` to `barfoo` (whole line) in file1 and file2             |
-| `goreplace -s 'foobar' -r barfoo --path=./ --path-pattern='*.txt'` | Replaces all lines with content `foobar` to `barfoo` (whole line) in *.txt files in current path |
+| `go-replace -s foobar -r barfoo file1 file2`                       | Replaces `foobar` to `barfoo` in file1 and file2                                                 |
+| `go-replace --regex -s 'foo.*' -r barfoo file1 file2`               | Replaces the regex `foo.*` to `barfoo` in file1 and file2                                        |
+| `go-replace --regex --ignore-case -s 'foo.*' -r barfoo file1 file2` | Replaces the regex `foo.*` (and ignore case) to `barfoo` in file1 and file2                      |
+| `go-replace --mode=line -s 'foobar' -r barfoo file1 file2`          | Replaces all lines with content `foobar` to `barfoo` (whole line) in file1 and file2             |
+| `go-replace -s 'foobar' -r barfoo --path=./ --path-pattern='*.txt'` | Replaces all lines with content `foobar` to `barfoo` (whole line) in *.txt files in current path |
 
 ### Example with golang templates
 
