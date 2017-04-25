@@ -70,11 +70,13 @@ this based on the source file name.
 
 ### Example with golang templates
 
+Withing the template there are [Template functions available from Sprig](https://masterminds.github.io/sprig/).
+
 Configuration file `daemon.conf.tmpl`:
 ```
 <VirtualHost ...>
-    ServerName {{.Env.SERVERNAME}}
-    DocumentRoot {{.Env.DOCUMENTROOT}}
+    ServerName {{env "SERVERNAME"}}
+    DocumentRoot {{env "DOCUMENTROOT"}}
 <VirtualHost>
 
 ```
@@ -93,7 +95,6 @@ Reuslt file `daemon.conf`:
     ServerName www.foobar.example
     DocumentRoot /var/www/foobar.example/
 <VirtualHost>
-
 ```
 
 ## Installation
