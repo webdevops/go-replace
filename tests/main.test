@@ -1,8 +1,10 @@
 Go Replace tests:
 
-  $ go build -o goreplace "$TESTDIR/../goreplace.go"
-  $ CURRENT=$(pwd)
-  $ alias goreplace="$CURRENT/goreplace"
+  $ CURRENT="$(pwd)"
+  $ cd "$TESTDIR/../"
+  $ go build -o goreplace
+  $ cd "$CURRENT"
+  $ alias goreplace="$TESTDIR/../goreplace"
 
 Usage:
 
