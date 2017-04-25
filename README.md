@@ -10,6 +10,18 @@ Cli utility for replacing text in files, written in golang and compiled for usag
 
 Inspired by https://github.com/piranha/goreplace
 
+## Features
+
+- Simple search&replace for terms specified as normal shell argument (for escaping only normal shell quotes needed)
+- Can use regular expressions for search&replace with and without backrefs (`--regex` and `--regex-backrefs`)
+- Supports multiple changesets (search&replace terms)
+- Replace the whole line with replacement when line is matching (`--mode=line`)
+- ... and add the line at the bottom if there is no match (`--mode=lineinfile`)
+- Use [golang template](https://golang.org/pkg/text/template/) with [Sprig template functions]](https://masterminds.github.io/sprig/) (`--mode=template`)
+- Can store file as other filename (eg. `go-replace ./configuration.tmpl:./configuration.conf`)
+- Can replace files in directory (`--path`) and offers file pattern matching functions (`--path-pattern` and `--path-regex`)
+- Can read also stdin for search&replace or template handling
+
 ## Usage
 
 ```
