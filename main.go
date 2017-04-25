@@ -6,14 +6,11 @@ import (
     "errors"
     "bytes"
     "io/ioutil"
-    "path/filepath"
     "bufio"
     "os"
     "strings"
     "regexp"
-    "text/template"
     flags "github.com/jessevdk/go-flags"
-    sprig "github.com/Masterminds/sprig"
 )
 
 const (
@@ -38,11 +35,6 @@ type changeresult struct {
 type fileitem struct {
     Path        string
     Output      string
-}
-
-type templateData struct {
-    Arg map[string]string
-    Env map[string]string
 }
 
 var opts struct {
@@ -191,77 +183,6 @@ func applyChangesetsToLine(line string, changesets []changeset) (string, bool, b
     return line, changed, skipLine
 }
 
-// Readln returns a single line (without the ending \n)
-// from the input buffered reader.
-// An error is returned iff there is an error with the
-// buffered reader.
-func Readln(r *bufio.Reader) (string, error) {
-  var (isPrefix bool = true
-       err error = nil
-       line, ln []byte
-      )
-  for isPrefix && err == nil {
-      line, isPrefix, err = r.ReadLine()
-      ln = append(ln, line...)
-  }
-  return string(ln),err
-}
-
-
-// Checks if there is a match in content, based on search options
-func searchMatch(content string, changeset changeset) (bool) {
-    if changeset.Search.MatchString(content) {
-        return true
-    }
-
-    return false
-}
-
-// Replace text in whole content based on search options
-func replaceText(content string, changeset changeset) (string) {
-    // --regex-backrefs
-    if opts.RegexBackref {
-        return changeset.Search.ReplaceAllString(content, changeset.Replace)
-    } else {
-        return changeset.Search.ReplaceAllLiteralString(content, changeset.Replace)
-    }
-}
-
-// Write content to file
-func writeContentToFile(fileitem fileitem, content bytes.Buffer) (string, bool) {
-    // --dry-run
-    if opts.DryRun {
-        return content.String(), true
-    } else {
-        var err error
-        err = ioutil.WriteFile(fileitem.Output, content.Bytes(), 0644)
-        if err != nil {
-            panic(err)
-        }
-
-        return fmt.Sprintf("%s found and replaced match\n", fileitem.Path), true
-    }
-}
-
-// Log message
-func logMessage(message string) {
-    if opts.Verbose {
-        fmt.Fprintln(os.Stderr, message)
-    }
-}
-
-// Log error object as message
-func logError(err error) {
-    fmt.Fprintln(os.Stderr, fmt.Sprintf("Error: %s\n", err))
-}
-
-
-// Log error object as message
-func logFatalErrorAndExit(err error, exitCode int) {
-    fmt.Fprintln(os.Stderr, fmt.Sprintf("Error: %s\n", err))
-    os.Exit(exitCode)
-}
-
 // Build search term
 // Compiles regexp if regexp is used
 func buildSearchTerm(term string) (*regexp.Regexp) {
@@ -297,58 +218,7 @@ func buildSearchTerm(term string) (*regexp.Regexp) {
     return ret
 }
 
-// check if string is contained in an array
-func contains(slice []string, item string) bool {
-    set := make(map[string]struct{}, len(slice))
-    for _, s := range slice {
-        set[s] = struct{}{}
-    }
 
-    _, ok := set[item]
-    return ok
-}
-
-// search files in path
-func searchFilesInPath(path string, callback func(os.FileInfo, string)) {
-        var pathRegex *regexp.Regexp
-
-        // --path-regex
-        if (opts.PathRegex != "") {
-            pathRegex = regexp.MustCompile(opts.PathRegex)
-        }
-
-        // collect all files
-        filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
-            filename := f.Name()
-
-            // skip directories
-            if f.IsDir() {
-                if contains(pathFilterDirectories, f.Name()) {
-                    return filepath.SkipDir
-                }
-
-                return nil
-            }
-
-            // --path-pattern
-            if (opts.PathPattern != "") {
-                matched, _ := filepath.Match(opts.PathPattern, filename)
-                if (!matched) {
-                    return nil
-                }
-            }
-
-            // --path-regex
-            if pathRegex != nil {
-                if (!pathRegex.MatchString(path)) {
-                    return nil
-                }
-            }
-
-            callback(f, path)
-            return nil
-        })
-}
 
 // handle special cli options
 // eg. --help
@@ -421,53 +291,6 @@ func actionProcessStdinReplace(changesets []changeset) (int) {
     }
 
     return 0
-}
-
-
-func generateTemplateData(changesets []changeset) (templateData) {
-    // init
-    var ret templateData
-    ret.Arg = make(map[string]string)
-    ret.Env = make(map[string]string)
-
-    // add changesets
-    for i := range changesets {
-        changeset := changesets[i]
-        ret.Arg[changeset.SearchPlain] = changeset.Replace
-    }
-
-    // add env variables
-    for _, e := range os.Environ() {
-        split := strings.SplitN(e, "=", 2)
-        envKey, envValue := split[0], split[1]
-        ret.Env[envKey] = envValue
-    }
-
-    return ret
-}
-
-func createTemplate() *template.Template {
-    tmpl := template.New("base")
-    tmpl.Funcs(sprig.TxtFuncMap())
-    tmpl.Option("missingkey=zero")
-
-    return tmpl
-}
-
-func parseContentAsTemplate(templateContent string, changesets []changeset) bytes.Buffer {
-    var content bytes.Buffer
-    data := generateTemplateData(changesets)
-    tmpl, err := createTemplate().Parse(templateContent)
-    if err != nil {
-        logFatalErrorAndExit(err, 1)
-    }
-
-    err = tmpl.Execute(&content, &data)
-    if err != nil {
-        logFatalErrorAndExit(err, 1)
-    }
-
-    return content
 }
 
 func actionProcessStdinTemplate(changesets []changeset) (int) {
