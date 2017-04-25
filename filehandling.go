@@ -44,42 +44,42 @@ func writeContentToFile(fileitem fileitem, content bytes.Buffer) (string, bool) 
 
 // search files in path
 func searchFilesInPath(path string, callback func(os.FileInfo, string)) {
-        var pathRegex *regexp.Regexp
+    var pathRegex *regexp.Regexp
 
-        // --path-regex
-        if (opts.PathRegex != "") {
-            pathRegex = regexp.MustCompile(opts.PathRegex)
+    // --path-regex
+    if (opts.PathRegex != "") {
+        pathRegex = regexp.MustCompile(opts.PathRegex)
+    }
+
+    // collect all files
+    filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
+        filename := f.Name()
+
+        // skip directories
+        if f.IsDir() {
+            if contains(pathFilterDirectories, f.Name()) {
+                return filepath.SkipDir
+            }
+
+            return nil
         }
 
-        // collect all files
-        filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
-            filename := f.Name()
-
-            // skip directories
-            if f.IsDir() {
-                if contains(pathFilterDirectories, f.Name()) {
-                    return filepath.SkipDir
-                }
-
+        // --path-pattern
+        if (opts.PathPattern != "") {
+            matched, _ := filepath.Match(opts.PathPattern, filename)
+            if (!matched) {
                 return nil
             }
+        }
 
-            // --path-pattern
-            if (opts.PathPattern != "") {
-                matched, _ := filepath.Match(opts.PathPattern, filename)
-                if (!matched) {
-                    return nil
-                }
+        // --path-regex
+        if pathRegex != nil {
+            if (!pathRegex.MatchString(path)) {
+                return nil
             }
+        }
 
-            // --path-regex
-            if pathRegex != nil {
-                if (!pathRegex.MatchString(path)) {
-                    return nil
-                }
-            }
-
-            callback(f, path)
-            return nil
-        })
+        callback(f, path)
+        return nil
+    })
 }
