@@ -21,6 +21,7 @@ Inspired by https://github.com/piranha/goreplace
 - Can store file as other filename (eg. `go-replace ./configuration.tmpl:./configuration.conf`)
 - Can replace files in directory (`--path`) and offers file pattern matching functions (`--path-pattern` and `--path-regex`)
 - Can read also stdin for search&replace or template handling
+- Supports Linux, MacOS, Windows and ARM/ARM64 (Rasbperry Pi and others)
 
 ## Usage
 

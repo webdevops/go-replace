@@ -5,7 +5,9 @@ GOBUILD = go build -ldflags '-w'
 ALL = \
 	$(foreach arch,64 32,\
 	$(foreach suffix,linux osx win.exe,\
-		build/gr-$(arch)-$(suffix)))
+		build/gr-$(arch)-$(suffix))) \
+	$(foreach arch,arm arm64,\
+		build/go-crond-$(arch)-linux)
 
 all: test build
 
@@ -30,7 +32,15 @@ build/gr-32-%: $(SOURCE)
 	@mkdir -p $(@D)
 	CGO_ENABLED=0 GOOS=$(firstword $($*) $*) GOARCH=386 $(GOBUILD) -o $@
 
-release: $(ALL)
+build/go-crond-arm-linux: $(SOURCE)
+	@mkdir -p $(@D)
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 $(GOBUILD) -o $@
+
+build/go-crond-arm64-linux: $(SOURCE)
+	@mkdir -p $(@D)
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GOBUILD) -o $@
+
+release: build
 	github-release release -u webdevops -r go-replace -t "$(TAG)" -n "$(TAG)" --description "$(TAG)"
 	@for x in $(ALL); do \
 		echo "Uploading $$x" && \
