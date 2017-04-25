@@ -13,6 +13,7 @@ import (
     "regexp"
     "text/template"
     flags "github.com/jessevdk/go-flags"
+    sprig "github.com/Masterminds/sprig"
 )
 
 const (
@@ -445,15 +446,22 @@ func generateTemplateData(changesets []changeset) (templateData) {
     return ret
 }
 
+func createTemplate() *template.Template {
+    tmpl := template.New("base")
+    tmpl.Funcs(sprig.TxtFuncMap())
+    tmpl.Option("missingkey=zero")
+
+    return tmpl
+}
+
 func parseContentAsTemplate(templateContent string, changesets []changeset) bytes.Buffer {
     var content bytes.Buffer
     data := generateTemplateData(changesets)
-
-    tmpl, err := template.New("template").Parse(templateContent)
+    tmpl, err := createTemplate().Parse(templateContent)
     if err != nil {
         logFatalErrorAndExit(err, 1)
     }
-    tmpl.Option("missingkey=zero")
+
     err = tmpl.Execute(&content, &data)
     if err != nil {
         logFatalErrorAndExit(err, 1)
