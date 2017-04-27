@@ -13,6 +13,8 @@ Usage:
   $ goreplace -V
   goreplace version [0-9]+.[0-9]+.[0-9]+ (re)
   Copyright \(C\) 20[0-9]{2} webdevops.io (re)
+  $ goreplace --dumpversion
+  [0-9]+.[0-9]+.[0-9]+ (re)
 
 
 Testing ignoring missing arguments:

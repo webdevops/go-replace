@@ -60,6 +60,7 @@ var opts struct {
     Verbose                 bool     `short:"v"  long:"verbose"                       description:"verbose mode"`
     DryRun                  bool     `           long:"dry-run"                       description:"dry run mode"`
     ShowVersion             bool     `short:"V"  long:"version"                       description:"show version and exit"`
+    ShowOnlyVersion         bool     `           long:"dumpversion"                   description:"show only version number and exit"`
     ShowHelp                bool     `short:"h"  long:"help"                          description:"show this help message"`
 }
 
@@ -226,6 +227,13 @@ func buildSearchTerm(term string) (*regexp.Regexp) {
 //     --path
 //     --mode=...
 func handleSpecialCliOptions(args []string) ([]string) {
+
+    // --dumpversion
+    if (opts.ShowOnlyVersion) {
+        fmt.Println(Version)
+        os.Exit(0)
+    }
+
     // --version
     if (opts.ShowVersion) {
         fmt.Println(fmt.Sprintf("goreplace version %s", Version))
