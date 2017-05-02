@@ -44,8 +44,7 @@ func generateTemplateData(changesets []changeset) (templateData) {
     ret.Env = make(map[string]string)
 
     // add changesets
-    for i := range changesets {
-        changeset := changesets[i]
+    for _, changeset := range changesets {
         ret.Arg[changeset.SearchPlain] = changeset.Replace
     }
 
