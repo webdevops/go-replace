@@ -101,8 +101,7 @@ func applyChangesetsToFile(fileitem fileitem, changesets []changeset) (string, b
 
     // --mode=lineinfile
     if opts.ModeIsLineInFile {
-        for i := range changesets {
-            changeset := changesets[i]
+        for _, changeset := range changesets {
             if !changeset.MatchFound {
                 buffer.WriteString(changeset.Replace + "\n")
                 writeBufferToFile = true
@@ -151,9 +150,7 @@ func applyChangesetsToLine(line string, changesets []changeset) (string, bool, b
     changed := false
     skipLine := false
 
-    for i := range changesets {
-        changeset := changesets[i]
-
+    for i, changeset := range changesets {
         // --once, only do changeset once if already applied to file
         if opts.Once != "" && changeset.MatchFound {
             // --once=unique, skip matching lines
@@ -333,9 +330,7 @@ func actionProcessFiles(changesets []changeset, fileitems []fileitem) (int) {
     var wg sync.WaitGroup
 
     // process file list
-    for i := range fileitems {
-        file := fileitems[i]
-
+    for _, file := range fileitems {
         wg.Add(1)
         go func(file fileitem, changesets []changeset) {
             var (
@@ -417,8 +412,7 @@ func buildChangesets() ([]changeset){
 func buildFileitems(args []string) ([]fileitem) {
     var fileitems []fileitem
 
-    for i := range args {
-        filepath := args[i]
+    for _, filepath := range args {
         file := fileitem{filepath, filepath}
 
         if opts.Output != "" {
