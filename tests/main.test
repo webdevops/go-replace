@@ -141,6 +141,34 @@ Testing replace mode with regex:
   this is the second line
   this is the third ___bar line
   this is the last line
+  $ goreplace --regex --regex-backrefs -s 'not-existing-line' -r '___$1' test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second line
+  this is the third ___bar line
+  this is the last line
+
+Testing lineinfile mode with regex:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the last line
+  > EOF
+  $ goreplace --mode=lineinfile --regex --regex-backrefs -s 'f[o]+(b[a]*r)' -r '___$1' test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second line
+  ___bar
+  this is the last line
+  $ goreplace  --mode=lineinfile --regex --regex-backrefs -s 'not-existing-line' -r '___$1' test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second line
+  ___bar
+  this is the last line
+  ___
 
 Testing replace mode with regex and case-insensitive:
 

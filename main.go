@@ -103,7 +103,14 @@ func applyChangesetsToFile(fileitem fileitem, changesets []changeset) (string, b
     if opts.ModeIsLineInFile {
         for _, changeset := range changesets {
             if !changeset.MatchFound {
-                buffer.WriteString(changeset.Replace + "\n")
+                line = changeset.Replace + "\n"
+
+                // remove backrefs (no match)
+                if opts.RegexBackref {
+                    line = regexp.MustCompile("\\$[0-9]+").ReplaceAllLiteralString(line, "")
+                }
+
+                buffer.WriteString(line)
                 writeBufferToFile = true
             }
         }
@@ -165,8 +172,16 @@ func applyChangesetsToLine(line string, changesets []changeset) (string, bool, b
             if searchMatch(line, changeset) {
                 // --mode=line or --mode=lineinfile
                 if opts.ModeIsReplaceLine || opts.ModeIsLineInFile {
-                    // replace whole line with replace term
-                    line = changeset.Replace
+                    if opts.RegexBackref {
+                        // get match
+                        line = string(changeset.Search.Find([]byte(line)))
+
+                        // replace regex backrefs in match
+                        line = changeset.Search.ReplaceAllString(line, changeset.Replace)
+                    } else {
+                        // replace whole line with replace term
+                        line = changeset.Replace
+                    }
                 } else {
                     // replace only term inside line
                     line = replaceText(line, changeset)
