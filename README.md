@@ -62,6 +62,8 @@ If `--path` (with or without `--path-pattern` or `--path-regex`) the files insid
 be overwritten. If `daemon.conf.tmpl` should be written as `daemon.conf` the option `--output-strip-ext=.tmpl` will do
 this based on the source file name.
 
+Regular expression's back references can be activated with `--regex-backrefs` and must be specified as `$1, $2 ... $9`.
+
 
 | Mode       | Description                                                                                                                                                    |
 |:-----------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------|
