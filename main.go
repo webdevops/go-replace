@@ -15,7 +15,7 @@ import (
 
 const (
     Author  = "webdevops.io"
-    Version = "1.0.1"
+    Version = "1.0.2"
 )
 
 type changeset struct {
