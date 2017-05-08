@@ -1,0 +1,154 @@
+Go Lineinfile tests:
+
+  $ CURRENT="$(pwd)"
+  $ cd "$TESTDIR/../"
+  $ go build -o goreplace
+  $ cd "$CURRENT"
+  $ alias goreplace="$TESTDIR/../goreplace"
+
+Exec test:
+
+  $ goreplace -h > /dev/null
+  [1]
+
+
+Testing lineinfile mode:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the last line
+  > EOF
+  $ goreplace --mode=lineinfile -s foobar -r ___xxx test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second line
+  ___xxx
+  this is the last line
+
+Testing lineinfile mode with multiple matches:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the foobar forth foobar line
+  > this is the last line
+  > EOF
+  $ goreplace --mode=lineinfile -s foobar -r ___xxx test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second line
+  ___xxx
+  ___xxx
+  this is the last line
+
+Testing lineinfile mode with multiple matches and --once:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the foobar forth foobar line
+  > this is the last line
+  > EOF
+  $ goreplace --mode=lineinfile -s foobar -r ___xxx --once test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second line
+  ___xxx
+  this is the foobar forth foobar line
+  this is the last line
+
+Testing lineinfile mode with multiple matches and --once=unique:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the foobar forth foobar line
+  > this is the last line
+  > EOF
+  $ goreplace --mode=lineinfile -s foobar -r ___xxx --once=unique test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second line
+  ___xxx
+  this is the last line
+
+Testing lineinfile mode without match:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the foobar forth foobar line
+  > this is the last line
+  > EOF
+  $ goreplace --mode=lineinfile -s barfoo -r ___xxx --once=unique test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second line
+  this is the third foobar line
+  this is the foobar forth foobar line
+  this is the last line
+  ___xxx
+
+Testing lineinfile mode with regex:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > this is the second line
+  > this is the third foobar line
+  > this is the last line
+  > EOF
+  $ goreplace --mode=lineinfile --regex --regex-backrefs -s 'f[o]+(b[a]*r)' -r '___$1' test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second line
+  ___bar
+  this is the last line
+  $ goreplace  --mode=lineinfile --regex --regex-backrefs -s 'not-existing-line' -r '___$1' test.txt
+  $ cat test.txt
+  this is a testline
+  this is the second line
+  ___bar
+  this is the last line
+  ___
+
+Testing lineinfile mode with lineinfile-before:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > #global#
+  > this is the second line
+  > this is the third foobar line
+  > this is the last line
+  > EOF
+  $ goreplace --mode=lineinfile --lineinfile-before="#global#" -s 'notexisting' -r 'example=foobar' test.txt
+  $ cat test.txt
+  this is a testline
+  example=foobar
+  #global#
+  this is the second line
+  this is the third foobar line
+  this is the last line
+
+Testing lineinfile mode with lineinfile-after:
+
+  $ cat > test.txt <<EOF
+  > this is a testline
+  > #global#
+  > this is the second line
+  > this is the third foobar line
+  > this is the last line
+  > EOF
+  $ goreplace --mode=lineinfile --lineinfile-after="#global#" -s 'notexisting' -r 'example=foobar' test.txt
+  $ cat test.txt
+  this is a testline
+  #global#
+  example=foobar
+  this is the second line
+  this is the third foobar line
+  this is the last line

@@ -44,7 +44,9 @@ var opts struct {
     ModeIsLineInFile        bool
     ModeIsTemplate          bool
     Search                  []string `short:"s"  long:"search"                        description:"search term"`
-    Replace                 []string `short:"r"  long:"replace"                       description:"replacement term" `
+    Replace                 []string `short:"r"  long:"replace"                       description:"replacement term"`
+    LineinfileBefore        string   `           long:"lineinfile-before"             description:"add line before this regex"`
+    LineinfileAfter         string   `           long:"lineinfile-after"              description:"add line after this regex"`
     CaseInsensitive         bool     `short:"i"  long:"case-insensitive"              description:"ignore case of pattern to match upper and lowercase characters"`
     Stdin                   bool     `           long:"stdin"                         description:"process stdin as input"`
     Output                  string   `short:"o"  long:"output"                        description:"write changes to this file (in one file mode)"`
@@ -101,18 +103,11 @@ func applyChangesetsToFile(fileitem fileitem, changesets []changeset) (string, b
 
     // --mode=lineinfile
     if opts.ModeIsLineInFile {
-        for _, changeset := range changesets {
-            if !changeset.MatchFound {
-                line = changeset.Replace + "\n"
-
-                // remove backrefs (no match)
-                if opts.RegexBackref {
-                    line = regexp.MustCompile("\\$[0-9]+").ReplaceAllLiteralString(line, "")
-                }
-
-                buffer.WriteString(line)
-                writeBufferToFile = true
-            }
+        lifBuffer, lifStatus := handleLineInFile(changesets, buffer)
+        if lifStatus {
+            buffer.Reset()
+            buffer.WriteString(lifBuffer.String())
+            writeBufferToFile = lifStatus
         }
     }
 
@@ -293,6 +288,16 @@ func handleSpecialCliOptions(args []string) ([]string) {
     // --output
     if (opts.Output != "" && len(args) > 1) {
         logFatalErrorAndExit(errors.New("Only one file is allowed when using --output"), 1)
+    }
+
+    if opts.LineinfileBefore != "" || opts.LineinfileAfter != "" {
+        if ! opts.ModeIsLineInFile {
+            logFatalErrorAndExit(errors.New("--lineinfile-after and --lineinfile-before only valid in --mode=lineinfile"), 1)
+        }
+
+        if opts.LineinfileBefore != "" && opts.LineinfileAfter != "" {
+            logFatalErrorAndExit(errors.New("Only --lineinfile-after or --lineinfile-before is allowed in --mode=lineinfile"), 1)
+        }
     }
 
     return args
