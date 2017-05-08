@@ -25,7 +25,7 @@ Testing missing search and replace argument:
 
   $ goreplace --mode=replace /dev/null
   Error: Missing either --search or --replace for this mode
-  
+  Command: .* (re)
   [1]
 
 Testing ignoring missing arguments in template mode:
@@ -311,7 +311,7 @@ Testing with --output but multiple arguments:
   $ cp test.txt test2.txt
   $ goreplace -s foobar -r ___xxx test.txt test2.txt --output test.output
   Error: Only one file is allowed when using --output
-  
+  Command: .* (re)
   [1]
 
 Testing with source:dest:
