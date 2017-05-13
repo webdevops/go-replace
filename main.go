@@ -101,6 +101,7 @@ func applyChangesetsToFile(fileitem fileitem, changesets []changeset) (string, b
 
         line, e = Readln(r)
     }
+    file.Close()
 
     // --mode=lineinfile
     if opts.ModeIsLineInFile {
