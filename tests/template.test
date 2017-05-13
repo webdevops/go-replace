@@ -2,13 +2,13 @@ Go Replace tests:
 
   $ CURRENT="$(pwd)"
   $ cd "$TESTDIR/../"
-  $ go build -o goreplace
+  $ go build -o go-replace
   $ cd "$CURRENT"
-  $ alias goreplace="$TESTDIR/../goreplace"
+  $ alias go-replace="$TESTDIR/../go-replace"
 
 Exec test:
 
-  $ goreplace -h > /dev/null
+  $ go-replace -h > /dev/null
   [1]
 
 
@@ -22,7 +22,7 @@ Testing template mode:
   > this is the third foobar line
   > this is the last line
   > EOF
-  $ goreplace --mode=template -s Foobar -r ___xxx test.txt
+  $ go-replace --mode=template -s Foobar -r ___xxx test.txt
   $ cat test.txt
   23<45
   ___xxx
@@ -41,7 +41,7 @@ Testing template mode with only env:
   > this is the third foobar line
   > this is the last line
   > EOF
-  $ Foobar=barfoo goreplace --mode=template test.txt
+  $ Foobar=barfoo go-replace --mode=template test.txt
   $ cat test.txt
   23<45
   barfoo
@@ -60,7 +60,7 @@ Testing template mode with only env and empty var:
   > this is the third foobar line
   > this is the last line
   > EOF
-  $ Foobar= goreplace --mode=template test.txt
+  $ Foobar= go-replace --mode=template test.txt
   $ cat test.txt
   23<45
   beginend
@@ -80,7 +80,7 @@ Testing template mode with only env and empty var:
   > this is the third foobar line
   > this is the last line
   > EOF
-  $ Foobar="bar=foo" goreplace --mode=template test.txt
+  $ Foobar="bar=foo" go-replace --mode=template test.txt
   $ cat test.txt
   23<45
   bar=foo
@@ -99,7 +99,7 @@ Testing template mode with stdin:
   > this is the third foobar line
   > this is the last line
   > EOF
-  $ cat test.txt | goreplace --mode=template --stdin -s Foobar -r ___xxx
+  $ cat test.txt | go-replace --mode=template --stdin -s Foobar -r ___xxx
   23<45
   ___xxx
   this is a testline
@@ -117,7 +117,7 @@ Testing template mode with stdin:
   > this is the third foobar line
   > this is the last line
   > EOF
-  $ goreplace --mode=template -s Foobar -r ___xxx --output-strip-ext=.tmpl test.txt.tmpl
+  $ go-replace --mode=template -s Foobar -r ___xxx --output-strip-ext=.tmpl test.txt.tmpl
   $ cat test.txt
   23<45
   ___xxx
@@ -132,7 +132,7 @@ Testing template with functions:
   > {{env "FOO"}}
   > {{env "bar"}}
   > EOF
-  $ FOO=bar bar=FOO goreplace --mode=template -s Foobar -r ___xxx test.txt
+  $ FOO=bar bar=FOO go-replace --mode=template -s Foobar -r ___xxx test.txt
   $ cat test.txt
   bar
   FOO

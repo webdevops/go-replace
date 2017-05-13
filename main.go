@@ -243,7 +243,7 @@ func handleSpecialCliOptions(args []string) ([]string) {
 
     // --version
     if (opts.ShowVersion) {
-        fmt.Println(fmt.Sprintf("goreplace version %s", Version))
+        fmt.Println(fmt.Sprintf("go-replace version %s", Version))
         fmt.Println(fmt.Sprintf("Copyright (C) 2017 %s", Author))
         os.Exit(0)
     }

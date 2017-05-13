@@ -2,35 +2,35 @@ Go Replace tests:
 
   $ CURRENT="$(pwd)"
   $ cd "$TESTDIR/../"
-  $ go build -o goreplace
+  $ go build -o go-replace
   $ cd "$CURRENT"
-  $ alias goreplace="$TESTDIR/../goreplace"
+  $ alias go-replace="$TESTDIR/../go-replace"
 
 Usage:
 
-  $ goreplace -h > /dev/null
+  $ go-replace -h > /dev/null
   [1]
-  $ goreplace -V
-  goreplace version [0-9]+.[0-9]+.[0-9]+ (re)
+  $ go-replace -V
+  go-replace version [0-9]+.[0-9]+.[0-9]+ (re)
   Copyright \(C\) 20[0-9]{2} webdevops.io (re)
-  $ goreplace --dumpversion
+  $ go-replace --dumpversion
   [0-9]+.[0-9]+.[0-9]+ (re)
 
 
 Testing ignoring missing arguments:
 
-  $ goreplace -s foobar -r ___xxx --ignore-empty
+  $ go-replace -s foobar -r ___xxx --ignore-empty
 
 Testing missing search and replace argument:
 
-  $ goreplace --mode=replace /dev/null
+  $ go-replace --mode=replace /dev/null
   Error: Missing either --search or --replace for this mode
   Command: .* (re)
   [1]
 
 Testing ignoring missing arguments in template mode:
 
-  $ goreplace --mode=template --ignore-empty
+  $ go-replace --mode=template --ignore-empty
 
 
 
@@ -42,7 +42,7 @@ Testing replace mode:
   > this is the third foobar line
   > this is the last line
   > EOF
-  $ goreplace -s foobar -r ___xxx test.txt
+  $ go-replace -s foobar -r ___xxx test.txt
   $ cat test.txt
   this is a testline
   this is the second line
@@ -57,7 +57,7 @@ Testing replace mode with multiple changesets:
   > this is the third foobar line
   > this is the last oofrab line
   > EOF
-  $ goreplace -s foobar -r 111 -s barfoo -r 222 -s oofrab -r 333 test.txt
+  $ go-replace -s foobar -r 111 -s barfoo -r 222 -s oofrab -r 333 test.txt
   $ cat test.txt
   this is a testline
   this is the second 222 line
@@ -72,7 +72,7 @@ Testing replace mode with stdin:
   > this is the third foobar line
   > this is the last line
   > EOF
-  $ cat test.txt | goreplace -s foobar -r ___xxx --stdin
+  $ cat test.txt | go-replace -s foobar -r ___xxx --stdin
   this is a testline
   this is the second line
   this is the third ___xxx line
@@ -87,7 +87,7 @@ Testing replace mode with multiple matches:
   > this is the foobar forth foobar line
   > this is the last line
   > EOF
-  $ goreplace -s foobar -r ___xxx test.txt
+  $ go-replace -s foobar -r ___xxx test.txt
   $ cat test.txt
   this is a testline
   this is the second line
@@ -104,7 +104,7 @@ Testing replace mode without match:
   > this is the foobar forth foobar line
   > this is the last line
   > EOF
-  $ goreplace -s barfoo -r ___xxx test.txt
+  $ go-replace -s barfoo -r ___xxx test.txt
   $ cat test.txt
   this is a testline
   this is the second line
@@ -120,7 +120,7 @@ Testing replace mode with regex:
   > this is the third foobar line
   > this is the last line
   > EOF
-  $ goreplace --regex -s 'f[o]+b[a]*r' -r ___xxx test.txt
+  $ go-replace --regex -s 'f[o]+b[a]*r' -r ___xxx test.txt
   $ cat test.txt
   this is a testline
   this is the second line
@@ -135,13 +135,13 @@ Testing replace mode with regex:
   > this is the third foobar line
   > this is the last line
   > EOF
-  $ goreplace --regex --regex-backrefs -s 'f[o]+(b[a]*r)' -r '___$1' test.txt
+  $ go-replace --regex --regex-backrefs -s 'f[o]+(b[a]*r)' -r '___$1' test.txt
   $ cat test.txt
   this is a testline
   this is the second line
   this is the third ___bar line
   this is the last line
-  $ goreplace --regex --regex-backrefs -s 'not-existing-line' -r '___$1' test.txt
+  $ go-replace --regex --regex-backrefs -s 'not-existing-line' -r '___$1' test.txt
   $ cat test.txt
   this is a testline
   this is the second line
@@ -156,7 +156,7 @@ Testing replace mode with regex and case-insensitive:
   > this is the third foobar line
   > this is the last line
   > EOF
-  $ goreplace --regex --regex-backrefs -s 'F[O]+(b[a]*r)' -r '___$1' --case-insensitive test.txt
+  $ go-replace --regex --regex-backrefs -s 'F[O]+(b[a]*r)' -r '___$1' --case-insensitive test.txt
   $ cat test.txt
   this is a testline
   this is the second line
@@ -172,7 +172,7 @@ Testing line mode:
   > this is the third foobar line
   > this is the last line
   > EOF
-  $ goreplace --mode=line -s foobar -r ___xxx test.txt
+  $ go-replace --mode=line -s foobar -r ___xxx test.txt
   $ cat test.txt
   this is a testline
   this is the second line
@@ -188,7 +188,7 @@ Testing line mode with multiple matches:
   > this is the foobar forth foobar line
   > this is the last line
   > EOF
-  $ goreplace --mode=line -s foobar -r ___xxx test.txt
+  $ go-replace --mode=line -s foobar -r ___xxx test.txt
   $ cat test.txt
   this is a testline
   this is the second line
@@ -205,7 +205,7 @@ Testing line mode with multiple matches and --once:
   > this is the foobar forth foobar line
   > this is the last line
   > EOF
-  $ goreplace --mode=line -s foobar -r ___xxx --once test.txt
+  $ go-replace --mode=line -s foobar -r ___xxx --once test.txt
   $ cat test.txt
   this is a testline
   this is the second line
@@ -222,7 +222,7 @@ Testing line mode with multiple matches and --once=unique:
   > this is the foobar forth foobar line
   > this is the last line
   > EOF
-  $ goreplace --mode=line -s foobar -r ___xxx --once=unique test.txt
+  $ go-replace --mode=line -s foobar -r ___xxx --once=unique test.txt
   $ cat test.txt
   this is a testline
   this is the second line
@@ -245,7 +245,7 @@ Testing replace mode with path option:
   $ cp test.txt testing/sub2/subsub/test4.txt
   $ cp test.txt testing/sub2/subsub/test5.txt
   $ cp test.txt testing/sub2/original.md
-  $ goreplace -s foobar -r barfoo --path=./testing --path-pattern='*.txt'
+  $ go-replace -s foobar -r barfoo --path=./testing --path-pattern='*.txt'
   $ cat testing/sub1/subsub/test1.txt
   this is a testline
   this is the second line
@@ -293,7 +293,7 @@ Testing with --output:
   > this is the third foobar line
   > this is the last line
   > EOF
-  $ goreplace -s foobar -r ___xxx test.txt --output test.output
+  $ go-replace -s foobar -r ___xxx test.txt --output test.output
   $ cat test.output
   this is a testline
   this is the second line
@@ -309,7 +309,7 @@ Testing with --output but multiple arguments:
   > this is the last line
   > EOF
   $ cp test.txt test2.txt
-  $ goreplace -s foobar -r ___xxx test.txt test2.txt --output test.output
+  $ go-replace -s foobar -r ___xxx test.txt test2.txt --output test.output
   Error: Only one file is allowed when using --output
   Command: .* (re)
   [1]
@@ -322,7 +322,7 @@ Testing with source:dest:
   > this is the third foobar line
   > this is the last line
   > EOF
-  $ goreplace -s foobar -r ___xxx test.txt:test.output
+  $ go-replace -s foobar -r ___xxx test.txt:test.output
   $ cat test.output
   this is a testline
   this is the second line

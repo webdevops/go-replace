@@ -2,13 +2,13 @@ Go Lineinfile tests:
 
   $ CURRENT="$(pwd)"
   $ cd "$TESTDIR/../"
-  $ go build -o goreplace
+  $ go build -o go-replace
   $ cd "$CURRENT"
-  $ alias goreplace="$TESTDIR/../goreplace"
+  $ alias go-replace="$TESTDIR/../go-replace"
 
 Exec test:
 
-  $ goreplace -h > /dev/null
+  $ go-replace -h > /dev/null
   [1]
 
 
@@ -20,7 +20,7 @@ Testing lineinfile mode:
   > this is the third foobar line
   > this is the last line
   > EOF
-  $ goreplace --mode=lineinfile -s foobar -r ___xxx test.txt
+  $ go-replace --mode=lineinfile -s foobar -r ___xxx test.txt
   $ cat test.txt
   this is a testline
   this is the second line
@@ -36,7 +36,7 @@ Testing lineinfile mode with multiple matches:
   > this is the foobar forth foobar line
   > this is the last line
   > EOF
-  $ goreplace --mode=lineinfile -s foobar -r ___xxx test.txt
+  $ go-replace --mode=lineinfile -s foobar -r ___xxx test.txt
   $ cat test.txt
   this is a testline
   this is the second line
@@ -53,7 +53,7 @@ Testing lineinfile mode with multiple matches and --once:
   > this is the foobar forth foobar line
   > this is the last line
   > EOF
-  $ goreplace --mode=lineinfile -s foobar -r ___xxx --once test.txt
+  $ go-replace --mode=lineinfile -s foobar -r ___xxx --once test.txt
   $ cat test.txt
   this is a testline
   this is the second line
@@ -70,7 +70,7 @@ Testing lineinfile mode with multiple matches and --once=unique:
   > this is the foobar forth foobar line
   > this is the last line
   > EOF
-  $ goreplace --mode=lineinfile -s foobar -r ___xxx --once=unique test.txt
+  $ go-replace --mode=lineinfile -s foobar -r ___xxx --once=unique test.txt
   $ cat test.txt
   this is a testline
   this is the second line
@@ -86,7 +86,7 @@ Testing lineinfile mode without match:
   > this is the foobar forth foobar line
   > this is the last line
   > EOF
-  $ goreplace --mode=lineinfile -s barfoo -r ___xxx --once=unique test.txt
+  $ go-replace --mode=lineinfile -s barfoo -r ___xxx --once=unique test.txt
   $ cat test.txt
   this is a testline
   this is the second line
@@ -103,13 +103,13 @@ Testing lineinfile mode with regex:
   > this is the third foobar line
   > this is the last line
   > EOF
-  $ goreplace --mode=lineinfile --regex --regex-backrefs -s 'f[o]+(b[a]*r)' -r '___$1' test.txt
+  $ go-replace --mode=lineinfile --regex --regex-backrefs -s 'f[o]+(b[a]*r)' -r '___$1' test.txt
   $ cat test.txt
   this is a testline
   this is the second line
   ___bar
   this is the last line
-  $ goreplace  --mode=lineinfile --regex --regex-backrefs -s 'not-existing-line' -r '___$1' test.txt
+  $ go-replace  --mode=lineinfile --regex --regex-backrefs -s 'not-existing-line' -r '___$1' test.txt
   $ cat test.txt
   this is a testline
   this is the second line
@@ -126,7 +126,7 @@ Testing lineinfile mode with lineinfile-before:
   > this is the third foobar line
   > this is the last line
   > EOF
-  $ goreplace --mode=lineinfile --lineinfile-before="#global#" -s 'notexisting' -r 'example=foobar' test.txt
+  $ go-replace --mode=lineinfile --lineinfile-before="#global#" -s 'notexisting' -r 'example=foobar' test.txt
   $ cat test.txt
   this is a testline
   example=foobar
@@ -144,7 +144,7 @@ Testing lineinfile mode with lineinfile-after:
   > this is the third foobar line
   > this is the last line
   > EOF
-  $ goreplace --mode=lineinfile --lineinfile-after="#global#" -s 'notexisting' -r 'example=foobar' test.txt
+  $ go-replace --mode=lineinfile --lineinfile-after="#global#" -s 'notexisting' -r 'example=foobar' test.txt
   $ cat test.txt
   this is a testline
   #global#
