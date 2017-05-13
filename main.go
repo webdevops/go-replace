@@ -2,7 +2,6 @@ package main
 
 import (
     "fmt"
-    "sync"
     "errors"
     "bytes"
     "io/ioutil"
@@ -11,6 +10,7 @@ import (
     "strings"
     "regexp"
     flags "github.com/jessevdk/go-flags"
+    "github.com/remeh/sizedwaitgroup"
 )
 
 const (
@@ -38,6 +38,7 @@ type fileitem struct {
 }
 
 var opts struct {
+    ThreadCount             int      `           long:"threads"                       description:"Set thread concurrency for replacing in multiple files at same time" default:"10"`
     Mode                    string   `short:"m"  long:"mode"                          description:"replacement mode - replace: replace match with term; line: replace line with term; lineinfile: replace line with term or if not found append to term to file; template: parse content as golang template, search value have to start uppercase" default:"replace" choice:"replace" choice:"line" choice:"lineinfile" choice:"template"`
     ModeIsReplaceMatch      bool
     ModeIsReplaceLine       bool
@@ -347,11 +348,11 @@ func actionProcessFiles(changesets []changeset, fileitems []fileitem) (int) {
 
     results := make(chan changeresult)
 
-    var wg sync.WaitGroup
+    wg := sizedwaitgroup.New(opts.ThreadCount)
 
     // process file list
     for _, file := range fileitems {
-        wg.Add(1)
+        wg.Add()
         go func(file fileitem, changesets []changeset) {
             var (
                 err error = nil
