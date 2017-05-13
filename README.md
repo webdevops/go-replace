@@ -30,7 +30,7 @@ Usage:
   go-replace
 
 Application Options:
-      --threads=                                Set thread concurrency for replacing in multiple files at same time (default: 10)
+      --threads=                                Set thread concurrency for replacing in multiple files at same time (default: 20)
   -m, --mode=[replace|line|lineinfile|template] replacement mode - replace: replace match with term; line: replace line with term; lineinfile: replace line with term or
                                                 if not found append to term to file; template: parse content as golang template, search value have to start uppercase
                                                 (default: replace)
