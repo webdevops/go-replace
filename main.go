@@ -235,8 +235,7 @@ func buildSearchTerm(term string) (*regexp.Regexp) {
 //     --version
 //     --path
 //     --mode=...
-func handleSpecialCliOptions(args []string) ([]string) {
-
+func handleSpecialCliOptions(args []string) {
     // --dumpversion
     if (opts.ShowOnlyVersion) {
         fmt.Println(Version)
@@ -280,13 +279,6 @@ func handleSpecialCliOptions(args []string) ([]string) {
             opts.ModeIsTemplate = true
     }
 
-    // --path
-    if (opts.Path != "") {
-        searchFilesInPath(opts.Path, func(f os.FileInfo, path string) {
-            args = append(args, path)
-        })
-    }
-
     // --output
     if (opts.Output != "" && len(args) > 1) {
         logFatalErrorAndExit(errors.New("Only one file is allowed when using --output"), 1)
@@ -301,8 +293,19 @@ func handleSpecialCliOptions(args []string) ([]string) {
             logFatalErrorAndExit(errors.New("Only --lineinfile-after or --lineinfile-before is allowed in --mode=lineinfile"), 1)
         }
     }
+}
 
-    return args
+func getFilelistByPath() []string {
+    var ret []string
+
+    // --path
+    if (opts.Path != "") {
+        searchFilesInPath(opts.Path, func(f os.FileInfo, path string) {
+            ret = append(ret, path)
+        })
+    }
+
+    return ret
 }
 
 func actionProcessStdinReplace(changesets []changeset) (int) {
@@ -347,13 +350,13 @@ func actionProcessFiles(changesets []changeset, fileitems []fileitem) (int) {
         }
     }
 
-    results := make(chan changeresult)
-
-    wg := sizedwaitgroup.New(opts.ThreadCount)
+    swg := sizedwaitgroup.New(8)
+    results := make(chan changeresult, len(fileitems))
 
     // process file list
     for _, file := range fileitems {
-        wg.Add()
+        fmt.Println(file.Path)
+        swg.Add()
         go func(file fileitem, changesets []changeset) {
             var (
                 err error = nil
@@ -366,16 +369,15 @@ func actionProcessFiles(changesets []changeset, fileitems []fileitem) (int) {
             } else {
                 output, status, err = applyChangesetsToFile(file, changesets)
             }
+
             results <- changeresult{file, output, status, err}
-            wg.Done()
+            swg.Done()
         } (file, changesets);
     }
 
     // wait for all changes to be processed
-    go func() {
-        wg.Wait()
-        close(results)
-    }()
+    swg.Wait()
+    close(results)
 
     // show results
     errorCount := 0
@@ -394,6 +396,7 @@ func actionProcessFiles(changesets []changeset, fileitems []fileitem) (int) {
             fmt.Fprintln(os.Stderr, "")
         }
     }
+
 
     if errorCount >= 1 {
         fmt.Fprintln(os.Stderr, fmt.Sprintf("[ERROR] %s failed with %d error(s)", argparser.Command.Name, errorCount))
@@ -432,10 +435,13 @@ func buildChangesets() ([]changeset){
 }
 
 func buildFileitems(args []string) ([]fileitem) {
-    var fileitems []fileitem
+    var (
+        fileitems []fileitem
+        file fileitem
+    )
 
     for _, filepath := range args {
-        file := fileitem{filepath, filepath}
+        file = fileitem{filepath, filepath}
 
         if opts.Output != "" {
             // use specific output
@@ -454,6 +460,25 @@ func buildFileitems(args []string) ([]fileitem) {
         fileitems = append(fileitems, file)
     }
 
+    // --path parsing
+    if opts.Path != "" {
+        for _, filepath := range getFilelistByPath() {
+            file := fileitem{filepath, filepath}
+
+            if opts.Output != "" {
+                // use specific output
+                file.Output = opts.Output
+            } else if opts.OutputStripFileExt != "" {
+                // remove file ext from saving destination
+                file.Output = strings.TrimSuffix(file.Output, opts.OutputStripFileExt)
+            }
+
+            // no colon parsing here
+
+            fileitems = append(fileitems, file)
+        }
+    }
+
     return fileitems
 }
 
@@ -462,7 +487,7 @@ func main() {
     argparser = flags.NewParser(&opts, flags.PassDoubleDash)
     args, err := argparser.Parse()
 
-    args = handleSpecialCliOptions(args)
+    handleSpecialCliOptions(args)
 
     // check if there is an parse error
     if err != nil {
