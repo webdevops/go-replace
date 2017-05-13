@@ -38,7 +38,7 @@ type fileitem struct {
 }
 
 var opts struct {
-    ThreadCount             int      `           long:"threads"                       description:"Set thread concurrency for replacing in multiple files at same time" default:"10"`
+    ThreadCount             int      `           long:"threads"                       description:"Set thread concurrency for replacing in multiple files at same time" default:"20"`
     Mode                    string   `short:"m"  long:"mode"                          description:"replacement mode - replace: replace match with term; line: replace line with term; lineinfile: replace line with term or if not found append to term to file; template: parse content as golang template, search value have to start uppercase" default:"replace" choice:"replace" choice:"line" choice:"lineinfile" choice:"template"`
     ModeIsReplaceMatch      bool
     ModeIsReplaceLine       bool
