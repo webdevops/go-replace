@@ -295,19 +295,6 @@ func handleSpecialCliOptions(args []string) {
     }
 }
 
-func getFilelistByPath() []string {
-    var ret []string
-
-    // --path
-    if (opts.Path != "") {
-        searchFilesInPath(opts.Path, func(f os.FileInfo, path string) {
-            ret = append(ret, path)
-        })
-    }
-
-    return ret
-}
-
 func actionProcessStdinReplace(changesets []changeset) (int) {
     scanner := bufio.NewScanner(os.Stdin)
     for scanner.Scan() {
@@ -355,7 +342,6 @@ func actionProcessFiles(changesets []changeset, fileitems []fileitem) (int) {
 
     // process file list
     for _, file := range fileitems {
-        fmt.Println(file.Path)
         swg.Add()
         go func(file fileitem, changesets []changeset) {
             var (
@@ -440,6 +426,7 @@ func buildFileitems(args []string) ([]fileitem) {
         file fileitem
     )
 
+    // Build filelist from arguments
     for _, filepath := range args {
         file = fileitem{filepath, filepath}
 
@@ -462,13 +449,10 @@ func buildFileitems(args []string) ([]fileitem) {
 
     // --path parsing
     if opts.Path != "" {
-        for _, filepath := range getFilelistByPath() {
+        searchFilesInPath(opts.Path, func(f os.FileInfo, filepath string) {
             file := fileitem{filepath, filepath}
 
-            if opts.Output != "" {
-                // use specific output
-                file.Output = opts.Output
-            } else if opts.OutputStripFileExt != "" {
+            if opts.OutputStripFileExt != "" {
                 // remove file ext from saving destination
                 file.Output = strings.TrimSuffix(file.Output, opts.OutputStripFileExt)
             }
@@ -476,7 +460,7 @@ func buildFileitems(args []string) ([]fileitem) {
             // no colon parsing here
 
             fileitems = append(fileitems, file)
-        }
+        })
     }
 
     return fileitems
