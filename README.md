@@ -123,3 +123,10 @@ GOREPLACE_VERSION=1.1.2 \
 && chmod +x /usr/local/bin/go-replace
 ```
 
+
+## Docker images
+
+| Image                         | Description                                                         |
+|:------------------------------|:--------------------------------------------------------------------|
+| `webdevops/go-replace:latest` | Latest release, binary only                                         |
+| `webdevops/go-replace:master` | Current development version in branch `master`, with golang runtime |
