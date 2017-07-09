@@ -9,6 +9,6 @@ RUN apk --no-cache add git \
     && chmod +x go-replace \
     && ./go-replace --version
 
-FROM golang:alpine
+FROM alpine
 COPY --from=buildenv /go/src/go-replace/go-replace /usr/local/bin
 CMD ["go-replace"]
