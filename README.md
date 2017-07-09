@@ -126,7 +126,8 @@ GOREPLACE_VERSION=1.1.2 \
 
 ## Docker images
 
-| Image                         | Description                                                         |
-|:------------------------------|:--------------------------------------------------------------------|
-| `webdevops/go-replace:latest` | Latest release, binary only                                         |
-| `webdevops/go-replace:master` | Current development version in branch `master`, with golang runtime |
+| Image                          | Description                                     |
+|:-------------------------------|:------------------------------------------------|
+| `webdevops/go-replace:latest`  | Latest release, binary only                     |
+| `webdevops/go-replace:master`  | Current development version in branch `master`  |
+| `webdevops/go-replace:develop` | Current development version in branch `develop` |
