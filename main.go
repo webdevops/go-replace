@@ -342,6 +342,8 @@ func actionProcessFiles(changesets []changeset, fileitems []fileitem) int {
 	for _, file := range fileitems {
 		swg.Add()
 		go func(file fileitem, changesets []changeset) {
+			defer swg.Done()
+
 			var (
 				err    error  = nil
 				output string = ""
@@ -355,7 +357,6 @@ func actionProcessFiles(changesets []changeset, fileitems []fileitem) int {
 			}
 
 			results <- changeresult{file, output, status, err}
-			swg.Done()
 		}(file, changesets)
 	}
 
