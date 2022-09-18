@@ -249,7 +249,7 @@ func handleSpecialCliOptions(args []string) {
 	// --help
 	if opts.ShowHelp {
 		argparser.WriteHelp(os.Stdout)
-		os.Exit(1)
+		os.Exit(0)
 	}
 
 	// --mode

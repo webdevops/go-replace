@@ -9,7 +9,6 @@ Go Replace tests:
 Usage:
 
   $ go-replace -h > /dev/null
-  [1]
   $ go-replace -V
   go-replace version .+ \(.+\) (re)
   Copyright \(C\) 20[0-9]{2} webdevops.io (re)

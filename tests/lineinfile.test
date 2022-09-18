@@ -9,7 +9,6 @@ Go Lineinfile tests:
 Exec test:
 
   $ go-replace -h > /dev/null
-  [1]
 
 
 Testing lineinfile mode:

@@ -9,7 +9,6 @@ Go Replace tests:
 Exec test:
 
   $ go-replace -h > /dev/null
-  [1]
 
 
 Testing template mode:
