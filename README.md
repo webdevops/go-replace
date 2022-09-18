@@ -118,8 +118,8 @@ Result file `daemon.conf`:
 ## Installation
 
 ```bash
-GOREPLACE_VERSION=1.1.2 \
-&& wget -O /usr/local/bin/go-replace https://github.com/webdevops/go-replace/releases/download/$GOREPLACE_VERSION/gr-64-linux \
+GOREPLACE_VERSION=22.9.0 \
+&& wget -O /usr/local/bin/go-replace https://github.com/webdevops/go-replace/releases/download/$GOREPLACE_VERSION/go-replace.linux.amd64 \
 && chmod +x /usr/local/bin/go-replace
 ```
 
