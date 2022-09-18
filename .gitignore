@@ -3,4 +3,6 @@
 /goreplace
 /go-replace
 /build/
+/vendor/
 /.idea
+/release-assets

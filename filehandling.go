@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -20,6 +19,7 @@ func Readln(r *bufio.Reader) (string, error) {
 		err      error = nil
 		line, ln []byte
 	)
+
 	for isPrefix && err == nil {
 		line, isPrefix, err = r.ReadLine()
 		ln = append(ln, line...)
@@ -33,9 +33,9 @@ func writeContentToFile(fileitem fileitem, content bytes.Buffer) (string, bool) 
 	if opts.DryRun {
 		return content.String(), true
 	} else {
-		var err error
-		err = ioutil.WriteFile(fileitem.Output, content.Bytes(), 0644)
-		if err != nil {
+		// TODO: check better file perm setting
+		// nolint: gosec
+		if err := os.WriteFile(fileitem.Output, content.Bytes(), 0644); err != nil {
 			panic(err)
 		}
 
@@ -53,7 +53,7 @@ func searchFilesInPath(path string, callback func(os.FileInfo, string)) {
 	}
 
 	// collect all files
-	filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
+	err := filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
 		filename := f.Name()
 
 		// skip directories
@@ -83,4 +83,7 @@ func searchFilesInPath(path string, callback func(os.FileInfo, string)) {
 		callback(f, path)
 		return nil
 	})
+	if err != nil {
+		panic(err)
+	}
 }

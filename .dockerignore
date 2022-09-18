@@ -1,0 +1,4 @@
+/vendor/
+/go-replace
+/example
+/release-assets

@@ -5,17 +5,22 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	flags "github.com/jessevdk/go-flags"
-	"github.com/remeh/sizedwaitgroup"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
+
+	flags "github.com/jessevdk/go-flags"
+	"github.com/remeh/sizedwaitgroup"
 )
 
 const (
-	Author  = "webdevops.io"
-	Version = "1.1.2"
+	Author = "webdevops.io"
+)
+
+var (
+	// Git version information
+	gitCommit = "<unknown>"
+	gitTag    = "<unknown>"
 )
 
 type changeset struct {
@@ -72,7 +77,6 @@ var pathFilterDirectories = []string{"autom4te.cache", "blib", "_build", ".bzr",
 // Apply changesets to file
 func applyChangesetsToFile(fileitem fileitem, changesets []changeset) (string, bool, error) {
 	var (
-		err    error  = nil
 		output string = ""
 		status bool   = true
 	)
@@ -131,21 +135,15 @@ func applyChangesetsToFile(fileitem fileitem, changesets []changeset) (string, b
 
 // Apply changesets to file
 func applyTemplateToFile(fileitem fileitem, changesets []changeset) (string, bool, error) {
-	var (
-		err    error  = nil
-		output string = ""
-		status bool   = true
-	)
-
 	// try open file
-	buffer, err := ioutil.ReadFile(fileitem.Path)
+	buffer, err := os.ReadFile(fileitem.Path)
 	if err != nil {
-		return output, false, err
+		return "", false, err
 	}
 
 	content := parseContentAsTemplate(string(buffer), changesets)
 
-	output, status = writeContentToFile(fileitem, content)
+	output, status := writeContentToFile(fileitem, content)
 
 	return output, status, err
 }
@@ -230,20 +228,21 @@ func buildSearchTerm(term string) *regexp.Regexp {
 
 // handle special cli options
 // eg. --help
-//     --version
-//     --path
-//     --mode=...
+//
+//	--version
+//	--path
+//	--mode=...
 func handleSpecialCliOptions(args []string) {
 	// --dumpversion
 	if opts.ShowOnlyVersion {
-		fmt.Println(Version)
+		fmt.Println(gitTag)
 		os.Exit(0)
 	}
 
 	// --version
 	if opts.ShowVersion {
-		fmt.Println(fmt.Sprintf("go-replace version %s", Version))
-		fmt.Println(fmt.Sprintf("Copyright (C) 2017 %s", Author))
+		fmt.Printf("go-replace version %s (%s)\n", gitTag, gitCommit)
+		fmt.Printf("Copyright (C) 2022 %s\n", Author)
 		os.Exit(0)
 	}
 
@@ -343,9 +342,9 @@ func actionProcessFiles(changesets []changeset, fileitems []fileitem) int {
 		swg.Add()
 		go func(file fileitem, changesets []changeset) {
 			var (
-				err    error  = nil
-				output string = ""
-				status bool   = true
+				err    error
+				output string
+				status bool
 			)
 
 			if opts.ModeIsTemplate {
@@ -382,7 +381,7 @@ func actionProcessFiles(changesets []changeset, fileitems []fileitem) int {
 	}
 
 	if errorCount >= 1 {
-		fmt.Fprintln(os.Stderr, fmt.Sprintf("[ERROR] %s failed with %d error(s)", argparser.Command.Name, errorCount))
+		fmt.Fprintf(os.Stderr, "[ERROR] %s failed with %d error(s)\n", argparser.Command.Name, errorCount)
 		return 1
 	}
 

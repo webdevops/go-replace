@@ -2,10 +2,11 @@ package main
 
 import (
 	"bytes"
-	sprig "github.com/Masterminds/sprig"
 	"os"
 	"strings"
 	"text/template"
+
+	sprig "github.com/Masterminds/sprig"
 )
 
 type templateData struct {

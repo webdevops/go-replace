@@ -11,10 +11,10 @@ Usage:
   $ go-replace -h > /dev/null
   [1]
   $ go-replace -V
-  go-replace version [0-9]+.[0-9]+.[0-9]+ (re)
+  go-replace version .+ \(.+\) (re)
   Copyright \(C\) 20[0-9]{2} webdevops.io (re)
   $ go-replace --dumpversion
-  [0-9]+.[0-9]+.[0-9]+ (re)
+  ([0-9]+.[0-9]+.[0-9]+|<unknown>) (re)
 
 
 Testing ignoring missing arguments:

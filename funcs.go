@@ -1,6 +1,5 @@
 package main
 
-import ()
 import (
 	"bufio"
 	"bytes"
@@ -20,11 +19,7 @@ func contains(slice []string, item string) bool {
 
 // Checks if there is a match in content, based on search options
 func searchMatch(content string, changeset changeset) bool {
-	if changeset.Search.MatchString(content) {
-		return true
-	}
-
-	return false
+	return changeset.Search.MatchString(content)
 }
 
 // Replace text in whole content based on search options
@@ -50,7 +45,7 @@ func handleLineInFile(changesets []changeset, buffer bytes.Buffer) (*bytes.Buffe
 
 			// remove backrefs (no match)
 			if opts.RegexBackref {
-				line = regexp.MustCompile("\\$[0-9]+").ReplaceAllLiteralString(line, "")
+				line = regexp.MustCompile(`\$[0-9]+`).ReplaceAllLiteralString(line, "")
 			}
 
 			// --lineinfile-before
