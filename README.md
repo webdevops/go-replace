@@ -78,9 +78,9 @@ Regular expression's back references can be activated with `--regex-backrefs` an
 
 ### Examples
 
-| Command                                                            | Description                                                                                      |
-|:-------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------|
-| `go-replace -s foobar -r barfoo file1 file2`                       | Replaces `foobar` to `barfoo` in file1 and file2                                                 |
+| Command                                                             | Description                                                                                      |
+|:--------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------|
+| `go-replace -s foobar -r barfoo file1 file2`                        | Replaces `foobar` to `barfoo` in file1 and file2                                                 |
 | `go-replace --regex -s 'foo.*' -r barfoo file1 file2`               | Replaces the regex `foo.*` to `barfoo` in file1 and file2                                        |
 | `go-replace --regex --ignore-case -s 'foo.*' -r barfoo file1 file2` | Replaces the regex `foo.*` (and ignore case) to `barfoo` in file1 and file2                      |
 | `go-replace --mode=line -s 'foobar' -r barfoo file1 file2`          | Replaces all lines with content `foobar` to `barfoo` (whole line) in file1 and file2             |
@@ -107,7 +107,7 @@ export DOCUMENTROOT=/var/www/foobar.example/
 go-replace --mode=template daemon.conf.tmpl:daemon.conf
 ```
 
-Reuslt file `daemon.conf`:
+Result file `daemon.conf`:
 ```
 <VirtualHost ...>
     ServerName www.foobar.example
