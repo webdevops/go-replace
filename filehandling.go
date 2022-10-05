@@ -54,6 +54,10 @@ func searchFilesInPath(path string, callback func(os.FileInfo, string)) {
 
 	// collect all files
 	err := filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
 		filename := f.Name()
 
 		// skip directories
