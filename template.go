@@ -16,7 +16,7 @@ type templateData struct {
 
 func createTemplate() *template.Template {
 	tmpl := template.New("base")
-	tmpl.Funcs(sprig.TxtFuncMap())
+	tmpl.Funcs(Merge(sprig.TxtFuncMap(), builtInFunctions()))
 	tmpl.Option("missingkey=zero")
 
 	return tmpl
