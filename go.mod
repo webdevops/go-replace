@@ -1,6 +1,6 @@
 module github.com/webdevops/go-replace
 
-go 1.26.5
+go 1.24
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
