@@ -77,8 +77,8 @@ var pathFilterDirectories = []string{"autom4te.cache", "blib", "_build", ".bzr",
 // Apply changesets to file
 func applyChangesetsToFile(fileitem fileitem, changesets []changeset) (string, bool, error) {
 	var (
-		output string = ""
-		status bool   = true
+		output = ""
+		status = true
 	)
 
 	// try open file
@@ -278,7 +278,7 @@ func handleSpecialCliOptions(args []string) {
 
 	// --output
 	if opts.Output != "" && len(args) > 1 {
-		logFatalErrorAndExit(errors.New("Only one file is allowed when using --output"), 1)
+		logFatalErrorAndExit(errors.New("only one file is allowed when using --output"), 1)
 	}
 
 	if opts.LineinfileBefore != "" || opts.LineinfileAfter != "" {
@@ -287,7 +287,7 @@ func handleSpecialCliOptions(args []string) {
 		}
 
 		if opts.LineinfileBefore != "" && opts.LineinfileAfter != "" {
-			logFatalErrorAndExit(errors.New("Only --lineinfile-after or --lineinfile-before is allowed in --mode=lineinfile"), 1)
+			logFatalErrorAndExit(errors.New("only --lineinfile-after or --lineinfile-before is allowed in --mode=lineinfile"), 1)
 		}
 	}
 }
@@ -330,7 +330,7 @@ func actionProcessFiles(changesets []changeset, fileitems []fileitem) int {
 			os.Exit(0)
 		} else {
 			// no files found, print error and exit with error code
-			logFatalErrorAndExit(errors.New("No files specified"), 1)
+			logFatalErrorAndExit(errors.New("no files specified"), 1)
 		}
 	}
 
@@ -381,7 +381,7 @@ func actionProcessFiles(changesets []changeset, fileitems []fileitem) int {
 	}
 
 	if errorCount >= 1 {
-		fmt.Fprintf(os.Stderr, "[ERROR] %s failed with %d error(s)\n", argparser.Command.Name, errorCount)
+		fmt.Fprintf(os.Stderr, "[ERROR] %s failed with %d error(s)\n", argparser.Name, errorCount)
 		return 1
 	}
 
@@ -394,14 +394,14 @@ func buildChangesets() []changeset {
 	if !opts.ModeIsTemplate {
 		if len(opts.Search) == 0 || len(opts.Replace) == 0 {
 			// error: unequal numbers of search and replace options
-			logFatalErrorAndExit(errors.New("Missing either --search or --replace for this mode"), 1)
+			logFatalErrorAndExit(errors.New("missing either --search or --replace for this mode"), 1)
 		}
 	}
 
 	// check if search and replace options have equal lenght (equal number of options)
 	if len(opts.Search) != len(opts.Replace) {
 		// error: unequal numbers of search and replace options
-		logFatalErrorAndExit(errors.New("Unequal numbers of search or replace options"), 1)
+		logFatalErrorAndExit(errors.New("unequal numbers of search or replace options"), 1)
 	}
 
 	// build changesets

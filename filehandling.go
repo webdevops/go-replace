@@ -15,7 +15,7 @@ import (
 // buffered reader.
 func Readln(r *bufio.Reader) (string, error) {
 	var (
-		isPrefix bool  = true
+		isPrefix       = true
 		err      error = nil
 		line, ln []byte
 	)
