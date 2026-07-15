@@ -20,7 +20,7 @@ func logError(err error) {
 
 // Log error object as message
 func logFatalErrorAndExit(err error, exitCode int) {
-	cmdline := fmt.Sprintf("%s %s", argparser.Command.Name, strings.Join(os.Args[1:], " "))
+	cmdline := fmt.Sprintf("%s %s", argparser.Name, strings.Join(os.Args[1:], " "))
 
 	fmt.Fprintf(os.Stderr, "Error: %s\n", err)
 	fmt.Fprintf(os.Stderr, "Command: %s\n", cmdline)

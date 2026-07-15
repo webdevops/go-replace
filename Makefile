@@ -59,7 +59,7 @@ cram-test: build
 
 .PHONY: lint
 lint: $(GOLANGCI_LINT_BIN)
-	time $(GOLANGCI_LINT_BIN) run --verbose --print-resources-usage
+	time $(GOLANGCI_LINT_BIN) run --verbose --verbose
 
 $(GOLANGCI_LINT_BIN):
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(FIRST_GOPATH)/bin
