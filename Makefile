@@ -99,3 +99,6 @@ release-assets/%: $(SOURCE)
 
 release-assets/darwin.arm:
 	echo "not supported"
+
+release-assets/windows.arm:
+	echo "not supported"
