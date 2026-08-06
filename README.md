@@ -115,6 +115,14 @@ Result file `daemon.conf`:
 <VirtualHost>
 ```
 
+### BuiltIn Functions
+
+There is support for additional builtin functions that can be used.
+
+List with example:
+
+ * file - `{{ file "example.txt" }}`
+
 ## Installation
 
 ```bash

@@ -135,3 +135,15 @@ Testing template with functions:
   $ cat test.txt
   bar
   FOO
+
+Testing template with reading from file:
+
+  $ cat > test.txt <<EOF
+  > {{file "foo.txt"}}
+  > {{file .Arg.foo}}
+  > EOF
+  $ printf "FOO" > foo.txt
+  $ go-replace --mode=template -s foo -r foo.txt test.txt
+  $ cat test.txt
+  FOO
+  FOO
